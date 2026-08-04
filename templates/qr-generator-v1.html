@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>QR Generator</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :root {
+        --bg: #f4f4f8;
+        --surface: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --text: #18181b;
+        --sub: #71717a;
+        --muted: #a1a1aa;
+        --blue: #2563eb;
+        --green: #16a34a;
+        --sans: "Plus Jakarta Sans", sans-serif;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 10px rgba(0, 0, 0, 0.04);
+      }
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        font-family: var(--sans);
+        -webkit-font-smoothing: antialiased;
+        color: var(--text);
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        max-width: 430px;
+        margin: 0 auto;
+        padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+        gap: 11px;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .header-left h1 {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.4px;
+      }
+      .header-left p {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .header-icon {
+        width: 38px;
+        height: 38px;
+        background: var(--text);
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .header-icon svg {
+        width: 20px;
+        height: 20px;
+        fill: #fff;
+      }
+
+      /* Card */
+      .card {
+        background: var(--surface);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      /* Textarea input */
+      .input-card {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+      textarea {
+        width: 100%;
+        border: none;
+        outline: none;
+        resize: none;
+        background: transparent;
+        font-family: var(--sans);
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text);
+        padding: 14px 15px 10px;
+        caret-color: var(--blue);
+        min-height: 80px;
+        max-height: 80px;
+      }
+      textarea::placeholder {
+        color: var(--muted);
+      }
+      .input-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 13px;
+        border-top: 1px solid var(--border);
+      }
+      .chips {
+        display: flex;
+        gap: 6px;
+      }
+      .chip {
+        height: 28px;
+        padding: 0 10px;
+        border: none;
+        border-radius: 7px;
+        background: var(--bg);
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--sub);
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .chip:active {
+        opacity: 0.5;
+      }
+      .char-count {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+      }
+
+      /* Options row */
+      .options-card {
+        padding: 13px 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .opt-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .opt-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      /* Color pickers */
+      .color-pair {
+        display: flex;
+        gap: 8px;
+      }
+      .color-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        background: var(--bg);
+        border-radius: 9px;
+        padding: 6px 10px 6px 7px;
+        cursor: pointer;
+        flex: 1;
+      }
+      .color-swatch {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        border: 1.5px solid rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .color-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--sub);
+      }
+      input[type="color"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      /* Size selector */
+      .size-tabs {
+        display: flex;
+        background: rgba(113, 113, 122, 0.1);
+        border-radius: 9px;
+        padding: 2px;
+        gap: 0;
+      }
+      .size-tab {
+        flex: 1;
+        padding: 6px 0;
+        border: none;
+        background: transparent;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        border-radius: 7px;
+        transition: all 0.2s;
+      }
+      .size-tab.active {
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Error correction */
+      .ec-tabs {
+        display: flex;
+        background: rgba(113, 113, 122, 0.1);
+        border-radius: 9px;
+        padding: 2px;
+        gap: 0;
+      }
+      .ec-tab {
+        flex: 1;
+        padding: 6px 0;
+        border: none;
+        background: transparent;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        border-radius: 7px;
+        transition: all 0.2s;
+      }
+      .ec-tab.active {
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* QR Preview */
+      .qr-card {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+
+      .qr-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+      }
+
+      #qrCanvas {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 12px;
+        display: none;
+      }
+
+      .qr-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .qr-placeholder svg {
+        opacity: 0.15;
+      }
+      .qr-placeholder p {
+        font-size: 13.5px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      /* Generate btn */
+      .gen-btn {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 16px;
+        background: var(--text);
+        color: #fff;
+        font-family: var(--sans);
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        flex-shrink: 0;
+        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.16);
+        transition: opacity 0.15s, transform 0.12s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .gen-btn:active {
+        opacity: 0.8;
+        transform: scale(0.985);
+      }
+
+      /* Download row */
+      .dl-row {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .dl-btn {
+        flex: 1;
+        padding: 13px;
+        border: none;
+        border-radius: 14px;
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s, transform 0.12s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .dl-btn:active {
+        opacity: 0.7;
+        transform: scale(0.98);
+      }
+      .dl-png {
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: var(--shadow);
+      }
+      .dl-svg {
+        background: var(--blue);
+        color: #fff;
+        box-shadow: 0 3px 12px rgba(37, 99, 235, 0.25);
+      }
+      .dl-btn svg {
+        width: 15px;
+        height: 15px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-left">
+          <h1>QR Generator</h1>
+          <p>Create custom QR codes</p>
+        </div>
+        <div class="header-icon">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 14h2v2h-2zm4-4h2v6h-2zm-4 2h2v4h-2zm-4-2v2h2v-2zm6 0h2v2h-2z"
+              opacity=".9"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="card input-card">
+        <textarea
+          id="qrInput"
+          placeholder="Enter URL, text, email, phone…"
+          oninput="onInput()"
+          maxlength="2953"
+        ></textarea>
+        <div class="input-footer">
+          <div class="chips">
+            <button class="chip" onclick="pasteInput()">Paste</button>
+            <button class="chip" onclick="clearInput()">Clear</button>
+          </div>
+          <span class="char-count"><span id="charCount">0</span> / 2953</span>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="card options-card">
+        <!-- Colors -->
+        <div class="opt-row">
+          <span class="opt-label">Colors</span>
+          <div class="color-pair">
+            <div class="color-item" onclick="get('fgPicker').click()">
+              <div
+                class="color-swatch"
+                id="fgSwatch"
+                style="background: #18181b"
+              ></div>
+              <span class="color-name">Dark</span>
+              <input
+                type="color"
+                id="fgPicker"
+                value="#18181b"
+                oninput="updateSwatch('fg')"
+              />
+            </div>
+            <div class="color-item" onclick="get('bgPicker').click()">
+              <div
+                class="color-swatch"
+                id="bgSwatch"
+                style="background: #ffffff"
+              ></div>
+              <span class="color-name">Light</span>
+              <input
+                type="color"
+                id="bgPicker"
+                value="#ffffff"
+                oninput="updateSwatch('bg')"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Size -->
+        <div class="opt-row">
+          <span class="opt-label">Size</span>
+          <div class="size-tabs" id="sizeTabs">
+            <button class="size-tab" onclick="setSize(128)">S</button>
+            <button class="size-tab active" onclick="setSize(256)">M</button>
+            <button class="size-tab" onclick="setSize(512)">L</button>
+            <button class="size-tab" onclick="setSize(1024)">XL</button>
+          </div>
+        </div>
+
+        <!-- Error Correction -->
+        <div class="opt-row">
+          <span class="opt-label">Error Fix</span>
+          <div class="ec-tabs" id="ecTabs">
+            <button class="ec-tab active" onclick="setEC('L')">L</button>
+            <button class="ec-tab" onclick="setEC('M')">M</button>
+            <button class="ec-tab" onclick="setEC('Q')">Q</button>
+            <button class="ec-tab" onclick="setEC('H')">H</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Preview -->
+      <div class="card qr-card" id="qrCard">
+        <div class="qr-wrap" id="qrWrap">
+          <div class="qr-placeholder" id="qrPlaceholder">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="#18181b">
+              <path
+                d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 14h2v2h-2zm4-4h2v6h-2zm-4 2h2v4h-2zm-4-2v2h2v-2zm6 0h2v2h-2z"
+              />
+            </svg>
+            <p>Your QR code appears here</p>
+          </div>
+          <canvas id="qrCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Generate -->
+      <button class="gen-btn" onclick="generate()">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#fff"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="23 4 23 10 17 10" />
+          <polyline points="1 20 1 14 7 14" />
+          <path
+            d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+          />
+        </svg>
+        Generate QR Code
+      </button>
+
+      <!-- Download -->
+      <div class="dl-row" id="dlRow" style="display: none">
+        <button class="dl-btn dl-png" onclick="downloadPNG()">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          PNG
+        </button>
+        <button class="dl-btn dl-svg" onclick="downloadSVG()">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          SVG
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function get(id) {
+        return document.getElementById(id);
+      }
+
+      let qrSize = 256;
+      let ecLevel = "L";
+      let hasQR = false;
+      let lastText = "";
+
+      function onInput() {
+        const v = get("qrInput").value;
+        get("charCount").textContent = v.length;
+      }
+
+      function pasteInput() {
+        navigator.clipboard
+          .readText()
+          .then((t) => {
+            get("qrInput").value = t;
+            onInput();
+          })
+          .catch(() => get("qrInput").focus());
+      }
+
+      function clearInput() {
+        get("qrInput").value = "";
+        onInput();
+        clearQR();
+      }
+
+      function clearQR() {
+        get("qrCanvas").style.display = "none";
+        get("qrPlaceholder").style.display = "flex";
+        get("dlRow").style.display = "none";
+        hasQR = false;
+      }
+
+      function updateSwatch(type) {
+        if (type === "fg")
+          get("fgSwatch").style.background = get("fgPicker").value;
+        else get("bgSwatch").style.background = get("bgPicker").value;
+      }
+
+      function setSize(s) {
+        qrSize = s;
+        get("sizeTabs")
+          .querySelectorAll(".size-tab")
+          .forEach((b, i) => {
+            b.classList.toggle("active", [128, 256, 512, 1024][i] === s);
+          });
+      }
+
+      function setEC(level) {
+        ecLevel = level;
+        get("ecTabs")
+          .querySelectorAll(".ec-tab")
+          .forEach((b, i) => {
+            b.classList.toggle("active", ["L", "M", "Q", "H"][i] === level);
+          });
+      }
+
+      function generate() {
+        const text = get("qrInput").value.trim();
+        if (!text) {
+          get("qrInput").focus();
+          get("qrInput").style.outline = "2px solid #dc2626";
+          setTimeout(() => (get("qrInput").style.outline = ""), 800);
+          return;
+        }
+
+        const fg = get("fgPicker").value;
+        const bg = get("bgPicker").value;
+        const canvas = get("qrCanvas");
+
+        // Clear old
+        const container = document.createElement("div");
+        container.style.display = "none";
+        document.body.appendChild(container);
+
+        try {
+          new QRCode(container, {
+            text: text,
+            width: qrSize,
+            height: qrSize,
+            colorDark: fg,
+            colorLight: bg,
+            correctLevel: QRCode.CorrectLevel[ecLevel],
+          });
+
+          // Wait for QRCode to render then copy to our canvas
+          requestAnimationFrame(() => {
+            const srcCanvas = container.querySelector("canvas");
+            const srcImg = container.querySelector("img");
+
+            if (srcCanvas) {
+              renderToCanvas(srcCanvas, canvas, fg, bg);
+            } else if (srcImg) {
+              srcImg.onload = () => {
+                const tmp = document.createElement("canvas");
+                tmp.width = qrSize;
+                tmp.height = qrSize;
+                tmp.getContext("2d").drawImage(srcImg, 0, 0, qrSize, qrSize);
+                renderToCanvas(tmp, canvas, fg, bg);
+              };
+            }
+            document.body.removeChild(container);
+          });
+        } catch (e) {
+          document.body.removeChild(container);
+        }
+
+        lastText = text;
+      }
+
+      function renderToCanvas(src, dest, fg, bg) {
+        const size = qrSize;
+        dest.width = size;
+        dest.height = size;
+        const ctx = dest.getContext("2d");
+
+        // White rounded background
+        ctx.fillStyle = bg;
+        ctx.beginPath();
+        roundRect(ctx, 0, 0, size, size, size * 0.05);
+        ctx.fill();
+
+        ctx.drawImage(src, 0, 0, size, size);
+
+        get("qrPlaceholder").style.display = "none";
+        dest.style.display = "block";
+        dest.style.maxWidth = "100%";
+        dest.style.maxHeight = "100%";
+        dest.style.borderRadius = "12px";
+        get("dlRow").style.display = "flex";
+        hasQR = true;
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
+      function downloadPNG() {
+        if (!hasQR) return;
+        const canvas = get("qrCanvas");
+        const a = document.createElement("a");
+        a.download = "qrcode.png";
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+      }
+
+      function downloadSVG() {
+        if (!hasQR) return;
+        const text = lastText;
+        const fg = get("fgPicker").value;
+        const bg = get("bgPicker").value;
+        // Generate SVG via canvas data URL fallback
+        const canvas = get("qrCanvas");
+        const size = qrSize;
+        const imgData = canvas.toDataURL("image/png");
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  <rect width="${size}" height="${size}" fill="${bg}" rx="${size * 0.05}"/>
+  <image href="${imgData}" width="${size}" height="${size}"/>
+</svg>`;
+        const blob = new Blob([svg], { type: "image/svg+xml" });
+        const a = document.createElement("a");
+        a.download = "qrcode.svg";
+        a.href = URL.createObjectURL(blob);
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>WhatsApp Formatter Pro</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+      body {
+        overscroll-behavior-y: none;
+        -webkit-tap-highlight-color: transparent;
+        background-color: #f3f4f6;
+      }
+      .app-container {
+        height: 100dvh;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .wa-bg {
+        background-color: #efeae2;
+        background-image: radial-gradient(
+          rgba(0, 0, 0, 0.035) 1px,
+          transparent 1.4px
+        );
+        background-size: 18px 18px;
+      }
+      .msg-tail:before {
+        content: "";
+        position: absolute;
+        right: -7px;
+        top: 0;
+        border-width: 0 9px 9px 0;
+        border-style: solid;
+        border-color: transparent #d9fdd3 transparent transparent;
+      }
+      blockquote {
+        border-left: 3px solid #9ca3af;
+        padding-left: 10px;
+        margin: 4px 0;
+        color: #555;
+      }
+      pre {
+        background: #111827;
+        color: #f9fafb;
+        padding: 10px 12px;
+        border-radius: 10px;
+        overflow: auto;
+        font-size: 12.5px;
+      }
+      code {
+        background: #e5e7eb;
+        color: #111827;
+        padding: 2px 6px;
+        border-radius: 5px;
+        font-size: 0.9em;
+      }
+
+      .animate-fade-in-up {
+        animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="font-sans antialiased overflow-hidden flex justify-center text-gray-900"
+  >
+    <div
+      class="app-container flex flex-col w-full max-w-md bg-white border-x border-gray-200 shadow-2xl relative"
+    >
+      <header
+        class="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0 bg-white z-10 shadow-sm"
+      >
+        <div class="flex items-center gap-2">
+          <i class="ph-fill ph-whatsapp-logo text-2xl text-gray-900"></i>
+          <div>
+            <h1
+              class="text-base font-bold tracking-tight text-gray-900 leading-none"
+            >
+              Formatter Pro
+            </h1>
+            <p
+              class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5"
+            >
+              Rich Text for WhatsApp
+            </p>
+          </div>
+        </div>
+        <div
+          class="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-full"
+        >
+          <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+          <span
+            class="text-[9px] font-bold text-gray-500 uppercase tracking-widest"
+            >Ready</span
+          >
+        </div>
+      </header>
+
+      <div
+        class="px-3 py-2.5 border-b border-gray-100 hide-scrollbar overflow-x-auto flex gap-1.5 bg-white shrink-0"
+      >
+        <button
+          class="w-12 h-12 rounded-xl border border-gray-200 bg-white active:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+          onclick="wrap('*', '*')"
+        >
+          <i class="ph-bold ph-text-b text-lg"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-xl border border-gray-200 bg-white active:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+          onclick="wrap('_', '_')"
+        >
+          <i class="ph ph-text-italic text-lg"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-xl border border-gray-200 bg-white active:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+          onclick="wrap('~', '~')"
+        >
+          <i class="ph ph-text-strikethrough text-lg"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-xl border border-gray-200 bg-white active:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+          onclick="wrap('\`\`\`', '\`\`\`')"
+        >
+          <i class="ph ph-code-block text-lg"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-xl border border-gray-200 bg-white active:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+          onclick="wrap('\`', '\`')"
+        >
+          <i class="ph ph-code text-lg"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-xl border border-gray-200 bg-white active:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+          onclick="prefix('&gt; ')"
+        >
+          <i class="ph ph-quotes text-lg"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-xl border border-gray-200 bg-white active:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+          onclick="bullet()"
+        >
+          <i class="ph ph-list-bullets text-lg"></i>
+        </button>
+        <button
+          class="w-12 h-12 rounded-xl border border-gray-200 bg-white active:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+          onclick="numbered()"
+        >
+          <i class="ph ph-list-numbers text-lg"></i>
+        </button>
+      </div>
+
+      <main
+        class="flex-1 overflow-y-auto hide-scrollbar p-5 bg-gray-50/50 flex flex-col gap-4"
+      >
+        <div
+          class="bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.05)]"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <span
+              class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+              >Compose</span
+            >
+            <span
+              id="count"
+              class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+              >0 Characters</span
+            >
+          </div>
+          <textarea
+            id="editor"
+            class="w-full h-40 outline-none resize-none text-sm leading-relaxed placeholder:text-gray-400"
+            placeholder="Type your WhatsApp message..."
+          ></textarea>
+          <div
+            class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100"
+          >
+            <div class="flex gap-1.5 overflow-x-auto hide-scrollbar">
+              <span
+                class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap"
+                >*bold*</span
+              >
+              <span
+                class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap"
+                >_italic_</span
+              >
+              <span
+                class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap"
+                >~strike~</span
+              >
+              <span
+                class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full whitespace-nowrap"
+                >&gt; quote</span
+              >
+            </div>
+            <button
+              onclick="clearText()"
+              class="text-[11px] font-bold text-gray-400 active:text-gray-600 flex items-center gap-1 pl-3 shrink-0 transition-colors"
+            >
+              <i class="ph ph-x-circle text-sm"></i> Clear
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)]"
+        >
+          <div
+            class="px-4 py-3 border-b border-gray-100 flex items-center gap-2"
+          >
+            <i class="ph-fill ph-eye text-gray-900"></i>
+            <span
+              class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+              >Live Preview</span
+            >
+          </div>
+          <div class="wa-bg p-4">
+            <div
+              class="relative msg-tail bg-[#d9fdd3] rounded-xl p-3.5 ml-8 shadow-sm"
+            >
+              <div
+                id="preview"
+                class="text-[14px] leading-relaxed text-gray-900"
+              >
+                Start typing...
+              </div>
+              <div class="text-right text-[10px] text-gray-500 mt-2">
+                12:00 <span class="text-sky-500">✓✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            onclick="copyText()"
+            class="py-3 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-900 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+          >
+            <i class="ph ph-copy text-lg"></i> Copy
+          </button>
+          <button
+            onclick="shareText()"
+            class="py-3 bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md"
+          >
+            <i class="ph ph-share-network text-lg"></i> Share
+          </button>
+        </div>
+      </main>
+
+      <div
+        id="toast"
+        class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-bold px-4 py-3 rounded-full opacity-0 pointer-events-none transition-opacity duration-300 z-50 shadow-lg flex items-center gap-2 whitespace-nowrap"
+      >
+        <i class="ph-fill ph-check-circle text-sm text-green-400"></i>
+        <span id="toast-msg">Copied to clipboard</span>
+      </div>
+
+      <div class="pb-safe bg-white shrink-0"></div>
+    </div>
+
+    <script>
+      const e = document.getElementById("editor"),
+        p = document.getElementById("preview"),
+        c = document.getElementById("count");
+      const toast = document.getElementById("toast"),
+        toastMsg = document.getElementById("toast-msg");
+
+      function showToast(msg) {
+        toastMsg.textContent = msg;
+        toast.classList.remove("opacity-0");
+        clearTimeout(window._t);
+        window._t = setTimeout(() => toast.classList.add("opacity-0"), 2500);
+      }
+
+      function wrap(a, b) {
+        let s = e.selectionStart,
+          t = e.selectionEnd,
+          v = e.value,
+          m = v.slice(s, t) || "text";
+        e.value = v.slice(0, s) + a + m + b + v.slice(t);
+        e.focus();
+        update();
+      }
+      function prefix(x) {
+        let s = e.selectionStart,
+          t = e.selectionEnd,
+          v = e.value,
+          m = v.slice(s, t) || "text";
+        e.value = v.slice(0, s) + x + m + v.slice(t);
+        e.focus();
+        update();
+      }
+      function bullet() {
+        transform((l) => "* " + l);
+      }
+      function numbered() {
+        let s = e.selectionStart,
+          t = e.selectionEnd,
+          v = e.value,
+          m = (v.slice(s, t) || "item")
+            .split("\n")
+            .map((x, i) => i + 1 + ". " + x)
+            .join("\n");
+        e.setRangeText(m, s, t, "end");
+        update();
+      }
+      function transform(fn) {
+        let s = e.selectionStart,
+          t = e.selectionEnd,
+          v = e.value,
+          m = (v.slice(s, t) || "item").split("\n").map(fn).join("\n");
+        e.setRangeText(m, s, t, "end");
+        update();
+      }
+      function esc(x) {
+        return x
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+      function parse(t) {
+        t = esc(t);
+        t = t.replace(/```([\s\S]*?)```/g, "<pre>$1</pre>");
+        t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
+        t = t.replace(/^>\s?(.*)$/gm, "<blockquote>$1</blockquote>");
+        t = t.replace(/^\*\s(.*)$/gm, "• $1");
+        t = t.replace(/^-\s(.*)$/gm, "• $1");
+        t = t.replace(/\*(.*?)\*/g, "<b>$1</b>");
+        t = t.replace(/_(.*?)_/g, "<i>$1</i>");
+        t = t.replace(/~(.*?)~/g, "<s>$1</s>");
+        return t.replace(/\n/g, "<br>");
+      }
+      function update() {
+        c.textContent = e.value.length + " Characters";
+        p.innerHTML = e.value ? parse(e.value) : "Start typing...";
+      }
+      e.oninput = update;
+
+      function copyText() {
+        navigator.clipboard
+          .writeText(e.value)
+          .then(() => showToast("Copied to clipboard"))
+          .catch(() => {
+            const tempInput = document.createElement("textarea");
+            tempInput.value = e.value;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            showToast("Copied to clipboard");
+          });
+      }
+      function shareText() {
+        if (navigator.share) {
+          navigator.share({ text: e.value });
+        } else {
+          copyText();
+        }
+      }
+      function clearText() {
+        e.value = "";
+        update();
+        e.focus();
+      }
+
+      update();
+    </script>
+  </body>
+</html>

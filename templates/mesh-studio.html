@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Mesh Studio</title>
+    <style>
+        /* Premium Native App Base Styles */
+        :root {
+            --bg-base: #000000;
+            --bg-sheet: #1C1C1E;
+            --bg-element: #2C2C2E;
+            --text-main: #FFFFFF;
+            --text-muted: #EBEBF599;
+            --accent: #FFFFFF;
+            --accent-text: #000000;
+            --track: #3A3A3C;
+            --radius-lg: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-base);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Edge-to-Edge Preview Area */
+        .preview-region {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-base);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* SVG Engine Container */
+        .svg-container {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Smooth morphing animation for the blobs */
+        .svg-container circle {
+            transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Bottom Control Sheet */
+        .editor-sheet {
+            height: 48vh; /* Fixed proportion of screen */
+            background-color: var(--bg-sheet);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .drag-indicator {
+            width: 36px;
+            height: 5px;
+            background: #505052;
+            border-radius: 4px;
+            margin: 12px auto;
+        }
+
+        .sheet-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Section Titles */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .value-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Horizontal Theme Chips */
+        .theme-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+        }
+        .theme-scroll::-webkit-scrollbar { display: none; }
+
+        .theme-chip {
+            background: var(--bg-element);
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .theme-chip.active {
+            background: var(--text-main);
+            color: var(--bg-base);
+        }
+
+        /* Native-style Sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--track);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); }
+
+        /* Action Buttons Grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: auto;
+        }
+
+        .btn {
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active { opacity: 0.7; }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--accent-text);
+        }
+
+        .btn-secondary {
+            background: var(--bg-element);
+            color: var(--text-main);
+        }
+
+        .btn svg { width: 18px; height: 18px; stroke-width: 2; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">Mesh Studio</div>
+    </header>
+
+    <div class="preview-region">
+        <svg id="mesh-svg" class="svg-container" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <filter id="mesh-blur" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur id="blur-filter" in="SourceGraphic" stdDeviation="150" result="blurred" />
+                    <feColorMatrix id="hue-filter" in="blurred" type="hueRotate" values="0" />
+                </filter>
+            </defs>
+            <rect id="bg-rect" width="100%" height="100%" fill="#111111"/>
+            <g id="blobs-container" filter="url(#mesh-blur)">
+                </g>
+        </svg>
+    </div>
+
+    <div class="editor-sheet">
+        <div class="drag-indicator"></div>
+        <div class="sheet-content">
+            
+            <div>
+                <div class="section-header">
+                    <span class="section-title">Color Palette</span>
+                </div>
+                <div class="theme-scroll" id="theme-container">
+                    </div>
+            </div>
+
+            <div>
+                <div class="section-header">
+                    <span class="section-title">Mesh Diffusion</span>
+                    <span class="value-label" id="val-blur">150</span>
+                </div>
+                <input type="range" id="ctrl-blur" min="50" max="300" value="150">
+            </div>
+
+            <div>
+                <div class="section-header">
+                    <span class="section-title">Hue Shift</span>
+                    <span class="value-label" id="val-hue">0°</span>
+                </div>
+                <input type="range" id="ctrl-hue" min="0" max="360" value="0">
+            </div>
+
+            <div class="action-grid">
+                <button class="btn btn-secondary" onclick="randomizeMesh()">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    Randomize
+                </button>
+                <button class="btn btn-primary" id="btn-export" onclick="exportPNG()">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Save PNG
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // High-end curated gradient palettes
+        const palettes = [
+            { name: "Aurora", bg: "#0a0b10", colors: ["#00ff87", "#60efff", "#0061ff", "#4facfe", "#43e97b"] },
+            { name: "Cyberpunk", bg: "#120422", colors: ["#f80c56", "#f22c8f", "#00d2ff", "#3a7bd5", "#8a2387"] },
+            { name: "Sunset", bg: "#2b0a18", colors: ["#ff0844", "#ffb199", "#f6d365", "#fda085", "#ff5858"] },
+            { name: "Lavender", bg: "#1a1525", colors: ["#a18cd1", "#fbc2eb", "#84fab0", "#8fd3f4", "#e0c3fc"] },
+            { name: "Ocean", bg: "#041527", colors: ["#4facfe", "#00f2fe", "#43e97b", "#38f9d7", "#0ba360"] },
+            { name: "Monochrome", bg: "#111111", colors: ["#333333", "#555555", "#777777", "#999999", "#bbbbbb"] }
+        ];
+
+        let activePalette = palettes[0];
+        const numBlobs = 6;
+        
+        // DOM Elements
+        const blobsContainer = document.getElementById('blobs-container');
+        const bgRect = document.getElementById('bg-rect');
+        
+        const blurFilter = document.getElementById('blur-filter');
+        const ctrlBlur = document.getElementById('ctrl-blur');
+        const valBlur = document.getElementById('val-blur');
+        
+        const hueFilter = document.getElementById('hue-filter');
+        const ctrlHue = document.getElementById('ctrl-hue');
+        const valHue = document.getElementById('val-hue');
+        
+        const themeContainer = document.getElementById('theme-container');
+
+        // Setup UI
+        function initThemes() {
+            palettes.forEach((p, i) => {
+                const chip = document.createElement('div');
+                chip.className = 'theme-chip' + (i === 0 ? ' active' : '');
+                chip.innerText = p.name;
+                chip.onclick = () => {
+                    document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    activePalette = p;
+                    randomizeMesh();
+                };
+                themeContainer.appendChild(chip);
+            });
+        }
+
+        // Generate or Update the SVG Blobs
+        function randomizeMesh() {
+            bgRect.setAttribute('fill', activePalette.bg);
+            
+            // Check if circles exist, if not create them
+            if (blobsContainer.children.length === 0) {
+                for (let i = 0; i < numBlobs; i++) {
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    blobsContainer.appendChild(circle);
+                }
+            }
+
+            // Animate properties
+            Array.from(blobsContainer.children).forEach((circle, i) => {
+                const cx = Math.floor(Math.random() * 1200) - 100; 
+                const cy = Math.floor(Math.random() * 1200) - 100;
+                const r = Math.floor(Math.random() * 400) + 200; 
+                const fill = activePalette.colors[i % activePalette.colors.length];
+
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', r);
+                circle.setAttribute('fill', fill);
+            });
+            
+            // Reset hue when changing palette or randomizing
+            ctrlHue.value = 0;
+            hueFilter.setAttribute('values', 0);
+            valHue.innerText = '0°';
+        }
+
+        // Handle Blur Slider
+        ctrlBlur.addEventListener('input', (e) => {
+            const val = e.target.value;
+            blurFilter.setAttribute('stdDeviation', val);
+            valBlur.innerText = val;
+        });
+
+        // Handle Hue Slider
+        ctrlHue.addEventListener('input', (e) => {
+            const val = e.target.value;
+            hueFilter.setAttribute('values', val);
+            valHue.innerText = val + '°';
+        });
+
+        // Initialize
+        initThemes();
+        randomizeMesh();
+
+        // ---- EXPORT FUNCTION ----
+        function exportPNG() {
+            const btn = document.getElementById('btn-export');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Saving...';
+            btn.style.opacity = '0.5';
+
+            const svgNode = document.getElementById('mesh-svg');
+            const serializer = new XMLSerializer();
+            let source = serializer.serializeToString(svgNode);
+            
+            if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+            const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+            
+            const img = new Image();
+            
+            // Standard Smartphone Portrait Resolution
+            const exportWidth = 1080;
+            const exportHeight = 1920;
+
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                canvas.width = exportWidth;
+                canvas.height = exportHeight;
+                const ctx = canvas.getContext("2d");
+                
+                ctx.drawImage(img, 0, 0, exportWidth, exportHeight);
+                
+                const pngUrl = canvas.toDataURL("image/png");
+                const link = document.createElement("a");
+                link.href = pngUrl;
+                link.download = `Mesh_Background_${Date.now()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Reset button UI
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            };
+            img.src = url;
+        }
+    </script>
+</body>
+</html>

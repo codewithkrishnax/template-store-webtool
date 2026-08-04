@@ -1,0 +1,494 @@
+[
+  {
+    "appId": "background-grid",
+    "appName": "Animated Grid Background",
+    "description": "A lightweight looping grid animation ideal for modern landing pages, dashboards, and portfolio backgrounds.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/4726/4726010.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/background-grid.html",
+    "isPremium": false,
+    "date": "2025-01-14",
+    "show": false
+  },
+  {
+    "appId": "code-to-image-v1",
+    "appName": "CodeSnap — Code to Image Tool",
+    "description": "Lightweight code-to-image tool converting snippets into beautiful, shareable images with clean UI, themes, backgrounds, and optimized 4K exports.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/code-to-image-v1.html",
+    "date": "2025-12-16",
+    "show": true,
+    "isPremium": true
+  },
+  {
+    "appId": "todo-pwa-v1",
+    "appName": "TaskFlow — Todo App",
+    "description": "Modern mobile-first Todo PWA with fullscreen layout, purple gradients, glassmorphic UI, smooth animations, real-time stats, intuitive daily productivity experience.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/14361/14361750.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/todo-pwa-v1.html",
+    "date": "2025-12-20",
+    "show": false
+  },
+  {
+    "appId": "js-editor-v1",
+    "appName": "JavaScript Editor – Live Preview",
+    "description": "A lightweight in-browser JavaScript editor with auto-run and live preview support. Ideal for testing UI components, animations, and quick prototypes.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/js-editor-v1.html",
+    "date": "2026-01-01",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "onepage-cv-ats-v1",
+    "appName": "One Page CV – ATS Friendly",
+    "description": "A clean, single-page resume template optimized for Applicant Tracking Systems. Ideal for job applications with structured content and readable layout.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/14361/14361750.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/onepage-cv-ats-v1.html",
+    "date": "2026-01-03",
+    "show": false
+  },
+  {
+    "appId": "json-master",
+    "appName": "JSON Master",
+    "description": "A powerful yet simple tool to format, validate, minify, and visualize JSON data. Ideal for developers working with APIs and configurations.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/json-master.html",
+    "date": "2025-12-26",
+    "show": true,
+    "isPremium": false
+  },
+  {
+    "appId": "tic-tac-toe",
+    "appName": "Tic Tac Toe",
+    "description": "Classic two player tic tac toe game with clean interface.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/tic-tac-toe.html",
+    "date": "2026-02-10",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "mockup-generator-v1",
+    "appName": "Mobile Mockup Generator – 4K Export",
+    "description": "Create realistic mobile device mockups and export high resolution 4K image instantly.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/mockup-generator-v1.html",
+    "date": "2026-02-27",
+    "isPremium": true,
+    "hasFileUpload": true,
+    "show": true
+  },
+  {
+    "appId": "base64-encoder-decoder-v1",
+    "appName": "Base64 Encode / Decode Tool",
+    "description": "Quickly encode text to Base64 or decode Base64 strings instantly.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/base64-encoder-decoder-v1.html",
+    "date": "2026-03-9",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "hash-tools-crypto-suite",
+    "appName": "Hash Tools – Crypto Suite",
+    "description": "Generate and lookup hashes using MD5, SHA1, SHA224, SHA256, SHA384, and SHA512 instantly.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/hash-tools-crypto-suite.html",
+    "date": "2026-03-09",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "youtube-thumbnail-grabber-v1",
+    "appName": "YouTube Thumbnail Grabber",
+    "description": "Extract and download all YouTube video thumbnail qualities instantly.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/youtube-thumbnail-grabber-v1.html",
+    "date": "2026-03-10",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "password-generator-v1",
+    "appName": "Password Generator",
+    "description": "Generate strong random passwords with custom length and character options.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/password-generator-v1.html",
+    "date": "2026-03-10",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "qr-generator-v1",
+    "appName": "QR Code Generator",
+    "description": "Generate customizable QR codes with color, size, and download options.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/qr-generator-v1.html",
+    "date": "2026-03-10",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "markdown-editor-v1",
+    "appName": "Markdown Editor – Live Preview",
+    "description": "Write Markdown with live preview, formatting toolbar, and export options.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/markdown-editor-v1.html",
+    "date": "2026-03-09",
+    "isPremium": true,
+    "show": false
+  },
+  {
+    "appId": "text-editor-v1",
+    "appName": "Simple Text Editor",
+    "description": "Minimal text editor with find, formatting tools, stats, and export.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/text-editor-v1.html",
+    "date": "2026-03-08",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "dark-loopable-background-v1",
+    "appName": "Dark Loopable Background",
+    "description": "A visually rich animated dark background with floating orbs, particle system, light rays, mesh gradients, and smooth loopable motion. Perfect for landing pages and hero sections.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/dark-loopable-background-v1.html",
+    "date": "2026-04-06",
+    "isPremium": false,
+    "show": false
+  },
+  {
+    "appId": "premium-abstract-flowing-background-v1",
+    "appName": "Premium Abstract Flowing Background",
+    "description": "A premium animated abstract background featuring flowing waves, glowing orbs, micro particles, and dynamic light streams. Perfect for modern hero sections, landing pages, and high-end UI designs.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/premium-abstract-flowing-background-v1.html",
+    "date": "2026-04-06",
+    "isPremium": false,
+    "show": false
+  },
+  {
+    "appId": "threejs-ai-particle-background-v1",
+    "appName": "Creative AI Background – Three.js",
+    "description": "A high-performance WebGL animated background built with Three.js featuring 3D particle systems, dynamic motion, and interactive mouse-based camera movement. Ideal for futuristic UI, AI dashboards, and hero sections.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/threejs-ai-particle-background-v1.html",
+    "date": "2026-04-06",
+    "isPremium": true,
+    "show": false
+  },
+  {
+    "appId": "threejs-particle-bg-60fps-v1",
+    "appName": "60fps Particle Background – Three.js",
+    "description": "A smooth and lightweight 3D particle background built with Three.js, optimized for 60fps performance. Features rotating particles with soft circular textures, ideal for modern landing pages and hero sections.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/threejs-particle-bg-60fps-v1.html",
+    "date": "2026-04-06",
+    "isPremium": true,
+    "show": false
+  },
+  {
+    "appId": "hyperspeed-background-v1",
+    "appName": "Hyperspeed Starfield Background",
+    "description": "A fast-moving hyperspeed starfield animation built with pure Canvas API. Creates a futuristic warp-speed effect, perfect for hero sections, sci-fi designs, and immersive landing pages.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/hyperspeed-background-v1.html",
+    "date": "2026-04-06",
+    "isPremium": false,
+    "show": false
+  },
+  {
+    "appId": "particle-lines-background-v1",
+    "appName": "Creative Particle Lines Background",
+    "description": "A smooth animated particle system with dynamic connecting lines based on distance. Built using Canvas API, perfect for modern websites, landing pages, and interactive backgrounds.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/particle-lines-background-v1.html",
+    "date": "2026-04-06",
+    "isPremium": false,
+    "show": false
+  },
+  {
+    "appId": "color-export-studio-v1",
+    "appName": "Color Export Studio",
+    "description": "A modern color palette generator with real-time preview and export options. Perfect for designers and developers who need to create consistent color schemes.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/color-export-studio-v1.html",
+    "date": "2026-05-06",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "mockup-generator-v2",
+    "appName": "Mockup Generator – 4K Export",
+    "description": "Create realistic device mockups and export high resolution 4K image instantly.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/mockup-generator-v2.html",
+    "date": "2026-05-06",
+    "isPremium": true,
+    "hasFileUpload": true,
+    "show": true
+  },
+  {
+    "appId": "js-editor-v2",
+    "appName": "JavaScript Editor – Version 2",
+    "description": "A lightweight in-browser JavaScript editor with auto-run and live preview support.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/js-editor-v2.html",
+    "date": "2026-05-06",
+    "isPremium": true,
+    "show": false
+  },
+  {
+    "appId": "json-tool-v1",
+    "appName": "JSON Tool – Format, Validate, Minify",
+    "description": "A powerful yet simple tool to format, validate, minify, and visualize JSON data. Ideal for developers working with APIs and configurations.",
+    "icon": "https://cdn-icons-png.flaticon.com/128/3449/3449657.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/json-tool-v1.html",
+    "date": "2025-05-06",
+    "show": true,
+    "isPremium": true
+  },
+  {
+    "appId": "markdown-editor-v2",
+    "appName": "Markdown Editor",
+    "description": "Write Markdown with live preview, formatting toolbar, and export options.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/markdown-editor-v2.html",
+    "date": "2026-05-06",
+    "isPremium": true,
+    "show": false
+  },
+  {
+    "appId": "qr-generator-v2",
+    "appName": "QR Code Generator",
+    "description": "Generate customizable QR codes.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/qr-generator-v2.html",
+    "date": "2026-05-06",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "text-editor-v2",
+    "appName": "Text Editor - Dark Mode",
+    "description": "Minimal text editor with find, formatting tools, stats, and export.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/text-editor-v2.html",
+    "date": "2026-05-06",
+    "isPremium": false,
+    "show": false
+  },
+  {
+    "appId": "image-tool-v1",
+    "appName": "Image Tool – Resize, Compress, Convert",
+    "description": "A simple yet powerful image tool to resize, compress, and convert images directly in the browser. Supports multiple formats and batch processing.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/image-tool-v1.html",
+    "date": "2026-05-06",
+    "isPremium": true,
+    "show": true,
+    "hasFileUpload": true
+  },
+  {
+    "appId": "draw-pad-v1",
+    "appName": "Draw Pad – Simple Canvas Drawing Tool",
+    "description": "A simple canvas drawing tool for creating sketches and artwork.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/draw-pad-v1.html",
+    "date": "2026-05-06",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "color-picker",
+    "appName": "Color Picker – Hex, RGB, HSL",
+    "description": "A simple color picker tool that allows you to select colors and get their Hex, RGB, and HSL values.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/color-picker.html",
+    "date": "2026-05-07",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "Color Mixer",
+    "appName": "Color Mixer – Blend Colors",
+    "description": "A simple color mixer tool that allows you to blend two colors and see the result.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/color-mixer.html",
+    "date": "2026-05-07",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "twitter-tweet-gen",
+    "appName": "X Tweet Generator",
+    "description": "A simple tool to generate X (formerly Twitter) tweet images with custom text, username, and profile picture.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/twitter-tweet-gen.html",
+    "date": "2026-05-07",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "insta-tweet-gen",
+    "appName": "Instagram Tweet Generator",
+    "description": "A simple tool to generate Instagram tweet images with custom text, username, and profile picture.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/insta-tweet-gen.html",
+    "date": "2026-05-07",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "linkedin-post-gen",
+    "appName": "LinkedIn Post Generator",
+    "description": "A simple tool to generate LinkedIn post images with custom text, username, and profile picture.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/linkedin-post-gen.html",
+    "date": "2026-05-14",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "snap-wrap",
+    "appName": "Snap Wrap",
+    "description": "A premium, mobile-first image editing tool to add gradients, solid backgrounds, corner radius, and custom borders to photos with high-resolution export.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/snap-wrap.html",
+    "date": "2026-05-14",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "favicon-studio",
+    "appName": "Favicon Studio",
+    "description": "A premium tool to resize favicons for your website with multiple sizes.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/favicon-studio.html",
+    "date": "2026-06-10",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "html-css-js-editor",
+    "appName": "HTML/CSS/JS - Editor",
+    "description": "A simple mobile-first HTML, CSS, and JavaScript playground with CodeMirror editing, tabbed workflow, and real-time live preview.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/html-css-js-editor.html",
+    "date": "2026-06-10",
+    "isPremium": true,
+    "show": false
+  },
+  {
+    "appId": "color-palette-extractor",
+    "appName": "Color Palette Extractor",
+    "description": "Extract dominant colors from any image and instantly copy HEX color codes. Perfect for designers, developers, and brand color discovery.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/color-palette-extractor.html",
+    "date": "2026-06-10",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "mesh-studio",
+    "appName": "Mesh Studio",
+    "description": "Create beautiful mesh gradients with curated color palettes, blur controls, random generation, and high-quality PNG or SVG export.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/mesh-studio.html",
+    "date": "2026-06-10",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "pdf-compress-pro",
+    "appName": "PDF Compress Pro",
+    "description": "Compress PDF files directly on your device with adjustable compression levels, privacy-focused processing, and optimized file size reduction.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/pdf-compress-pro.html",
+    "date": "2026-06-10",
+    "isPremium": true,
+    "hasFileUpload": true,
+    "show": true
+  },
+  {
+    "appId": "image-base64-converter",
+    "appName": "Image ↔ Base64 Converter",
+    "description": "Convert images to Base64 strings and decode Base64 back into images instantly. Supports drag & drop, clipboard, preview, download, and offline browser processing.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/image-base64-converter.html",
+    "date": "2026-06-27",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "browser-mockup-generator",
+    "appName": "Browser Mockup Generator",
+    "description": "Create beautiful browser mockups with macOS and Windows styles. Upload screenshots, customize browser frame, choose image fit, and export high-quality PNG images up to 4K resolution.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/browser-mockup-generator.html",
+    "date": "2026-06-27",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "canvas-studio-image-exporter",
+    "appName": "Canvas Studio – Image Exporter",
+    "description": "Design custom social media graphics by adding draggable text and images on a canvas. Customize background colors, freely position elements, and export high-quality PNG images.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/canvas-studio-image-exporter.html",
+    "date": "2026-06-27",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "ocr-studio-v1",
+    "appName": "OCR Studio – Image to Text",
+    "description": "Extract editable text from images using OCR with camera, gallery, and clipboard support.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/ocr-studio-v1.html",
+    "date": "2026-07-12",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "qr-scanner-pro-v1",
+    "appName": "QR Scanner Pro",
+    "description": "Scan QR codes and barcodes instantly using your camera with fast detection and link support.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/qr-scanner-pro-v1.html",
+    "date": "2026-07-12",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "whatsapp-formatter-pro-v1",
+    "appName": "WhatsApp Formatter Pro",
+    "description": "Format WhatsApp messages with bold, italic, code blocks, quotes, live preview, copy, and share support.",
+    "icon": null,
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/whatsapp-formatter-pro-v1.html",
+    "date": "2026-07-12",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "image-format-studio-v1",
+    "appName": "Image Format Studio",
+    "description": "Convert images between WEBP, ICO, and BMP locally with adjustable quality and instant download.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/image-format-studio-v1.html",
+    "date": "2026-07-12",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "morse-studio-v1",
+    "appName": "Morse Studio",
+    "description": "Translate English and Morse code with audio playback, copy support, and instant two-way conversion.",
+    "icon": "",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/morse-studio-v1.html",
+    "date": "2026-07-12",
+    "isPremium": false,
+    "show": true
+  }
+]

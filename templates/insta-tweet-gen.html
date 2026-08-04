@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IG Post Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Mobile App Base Styles */
+        :root {
+            --bg-base: #F2F2F7;
+            --bg-surface: #FFFFFF;
+            --text-main: #000000;
+            --text-muted: #8E8E8E;
+            --border-color: #DBDBDB;
+            --accent: #0095F6; /* IG Blue */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            width: 100vw;
+            min-height: 100dvh;
+            padding-top: 60px; /* Accounts for fixed header */
+            padding-bottom: 40px;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fixed App Header with Blur */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .header-spacer { width: 60px; } /* for center alignment */
+        
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .header-btn {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 60px;
+            text-align: right;
+        }
+
+        /* Container & Preview */
+        .preview-wrapper {
+            padding: 20px 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .ig-card {
+            background-color: var(--bg-surface);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* IG Header */
+        .ig-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+        }
+
+        .ig-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ig-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+        .ig-name-loc {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ig-username {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .ig-location {
+            font-size: 12px;
+            color: var(--text-main);
+        }
+
+        .ig-more {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-main);
+        }
+
+        /* IG Main Image */
+        .ig-image-container {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #EFEFEF;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .ig-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* IG Actions */
+        .ig-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 12px 8px 12px;
+        }
+
+        .ig-action-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .ig-icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-main);
+        }
+
+        /* IG Meta */
+        .ig-meta {
+            padding: 0 12px 14px 12px;
+            font-size: 14px;
+        }
+
+        .ig-likes {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .ig-caption-wrap {
+            margin-bottom: 6px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .ig-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Editor / Inputs Area */
+        .editor-wrapper {
+            padding: 0 16px 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: -10px;
+            padding-left: 8px;
+        }
+
+        .input-card {
+            background-color: var(--bg-surface);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .input-row:last-child {
+            border-bottom: none;
+        }
+
+        .input-row label {
+            width: 100px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-main);
+            flex-shrink: 0;
+        }
+
+        .input-row input[type="text"],
+        .input-row input[type="number"] {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            color: var(--text-muted);
+            outline: none;
+            text-align: right;
+        }
+
+        .input-row input:focus {
+            color: var(--text-main);
+        }
+
+        .input-row textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            color: var(--text-main);
+            outline: none;
+            resize: none;
+            height: 60px;
+            padding: 4px 0;
+        }
+
+        /* Custom File Input Uploaders */
+        .upload-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .file-upload-btn {
+            flex: 1;
+            background-color: var(--bg-surface);
+            color: var(--accent);
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-upload-btn.primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .file-upload-btn input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        /* Big Download Button */
+        .btn-large {
+            background-color: #34C759; /* iOS Green */
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+            transition: opacity 0.2s;
+        }
+
+        .btn-large:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-spacer"></div>
+        <div class="header-title">Post Maker</div>
+        <button class="header-btn" onclick="downloadImage()">Save</button>
+    </header>
+
+    <div class="preview-wrapper">
+        <div class="ig-card" id="post-capture">
+            <div class="ig-header">
+                <div class="ig-user-info">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23DBDBDB' width='100' height='100'/></svg>" alt="Avatar" class="ig-avatar" id="out-avatar">
+                    <div class="ig-name-loc">
+                        <span class="ig-username" id="out-username">username</span>
+                        <span class="ig-location" id="out-location" style="display: none;">Location</span>
+                    </div>
+                </div>
+                <svg class="ig-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><circle cx="6" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>
+            </div>
+
+            <div class="ig-image-container">
+                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect fill='%23EFEFEF' width='400' height='400'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='16' fill='%238E8E8E'>Add Photo Below</text></svg>" alt="Post Content" class="ig-image" id="out-post-image">
+            </div>
+
+            <div class="ig-actions">
+                <div class="ig-action-group">
+                    <svg class="ig-icon" viewBox="0 0 24 24"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.543 1.117 1.543s.277-.368 1.117-1.543a4.21 4.21 0 0 1 3.675-1.941z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    <svg class="ig-icon" viewBox="0 0 24 24"><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    <svg class="ig-icon" viewBox="0 0 24 24"><line x1="22" y1="3" x2="9.218" y2="10.083" stroke="currentColor" stroke-width="2"/><polygon points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </div>
+                <svg class="ig-icon" viewBox="0 0 24 24"><polygon points="20 21 12 13.44 4 21 4 3 20 3 20 21" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+
+            <div class="ig-meta">
+                <div class="ig-likes"><span id="out-likes">1,024</span> likes</div>
+                <div class="ig-caption-wrap">
+                    <span class="ig-username" id="out-caption-user">username</span> 
+                    <span id="out-caption">Enjoying the vibes today ✨</span>
+                </div>
+                <div class="ig-time" id="out-time">2 hours ago</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="editor-wrapper">
+        
+        <div class="upload-row">
+            <div class="file-upload-btn primary">
+                Main Photo
+                <input type="file" id="in-post-image" accept="image/*">
+            </div>
+            <div class="file-upload-btn">
+                Avatar
+                <input type="file" id="in-avatar" accept="image/*">
+            </div>
+        </div>
+
+        <div class="section-title">Profile Info</div>
+        <div class="input-card">
+            <div class="input-row">
+                <label>Username</label>
+                <input type="text" id="in-username" value="johndoe">
+            </div>
+            <div class="input-row">
+                <label>Location</label>
+                <input type="text" id="in-location" placeholder="e.g. Paris, France">
+            </div>
+        </div>
+
+        <div class="section-title">Post Details</div>
+        <div class="input-card">
+            <div class="input-row" style="flex-direction: column; align-items: flex-start;">
+                <label style="margin-bottom: 8px;">Caption</label>
+                <textarea id="in-caption">Enjoying the vibes today ✨</textarea>
+            </div>
+            <div class="input-row">
+                <label>Likes</label>
+                <input type="number" id="in-likes" value="1024">
+            </div>
+            <div class="input-row">
+                <label>Time</label>
+                <input type="text" id="in-time" value="2 HOURS AGO">
+            </div>
+        </div>
+
+        <button class="btn-large" onclick="downloadImage()">Download as Image</button>
+
+    </div>
+
+    <script>
+        // Inputs
+        const inAvatar = document.getElementById('in-avatar');
+        const inPostImage = document.getElementById('in-post-image');
+        const inUsername = document.getElementById('in-username');
+        const inLocation = document.getElementById('in-location');
+        const inCaption = document.getElementById('in-caption');
+        const inLikes = document.getElementById('in-likes');
+        const inTime = document.getElementById('in-time');
+
+        // Outputs
+        const outAvatar = document.getElementById('out-avatar');
+        const outPostImage = document.getElementById('out-post-image');
+        const outUsername = document.getElementById('out-username');
+        const outCaptionUser = document.getElementById('out-caption-user');
+        const outLocation = document.getElementById('out-location');
+        const outCaption = document.getElementById('out-caption');
+        const outLikes = document.getElementById('out-likes');
+        const outTime = document.getElementById('out-time');
+
+        // Format Numbers (e.g., 1024 -> 1,024)
+        function formatNumber(num) {
+            if (!num) return "0";
+            return Number(num).toLocaleString('en-US');
+        }
+
+        // Update UI
+        function updatePreview() {
+            const username = inUsername.value || 'username';
+            outUsername.innerText = username;
+            outCaptionUser.innerText = username;
+            
+            if (inLocation.value.trim() !== '') {
+                outLocation.innerText = inLocation.value;
+                outLocation.style.display = 'block';
+            } else {
+                outLocation.style.display = 'none';
+            }
+
+            outCaption.innerText = inCaption.value || '';
+            outLikes.innerText = formatNumber(inLikes.value);
+            outTime.innerText = (inTime.value || '').toUpperCase();
+        }
+
+        // Handle Images Base64 Conversion (Keeps HTML2Canvas working properly)
+        function handleImageUpload(inputElement, targetImgElement) {
+            inputElement.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        targetImgElement.src = event.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        handleImageUpload(inAvatar, outAvatar);
+        handleImageUpload(inPostImage, outPostImage);
+
+        // Bind text inputs to live preview
+        const inputs = [inUsername, inLocation, inCaption, inLikes, inTime];
+        inputs.forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+
+        // Setup Download Image Function
+        function downloadImage() {
+            const captureElement = document.getElementById('post-capture');
+            
+            // Change button text temporarily
+            const btns = document.querySelectorAll('.header-btn, .btn-large');
+            btns.forEach(b => b.style.opacity = '0.5');
+            
+            // Use html2canvas to screenshot the specific div
+            html2canvas(captureElement, {
+                scale: 3, // High resolution
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                // Create a temporary link to download
+                const link = document.createElement('a');
+                link.download = 'instagram-post.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                // Reset buttons
+                btns.forEach(b => b.style.opacity = '1');
+            }).catch(err => {
+                alert('Error saving image. Please ensure your photos are standard image files.');
+                btns.forEach(b => b.style.opacity = '1');
+            });
+        }
+
+        // Initialize empty state logic
+        updatePreview();
+    </script>
+</body>
+</html>

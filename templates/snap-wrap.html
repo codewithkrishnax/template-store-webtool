@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Pro Studio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Pro iOS Dark Mode Base */
+        :root {
+            --bg-base: #000000;
+            --bg-sheet: #1C1C1E;
+            --bg-element: #2C2C2E;
+            --text-main: #FFFFFF;
+            --text-muted: #EBEBF599;
+            --accent: #0A84FF;
+            --track: #3A3A3C;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Minimal Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-base);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .btn-icon {
+            background: var(--bg-element);
+            color: var(--text-main);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-save:active { opacity: 0.7; }
+
+        /* Edge-to-Edge Canvas (100vw x 100vw Square) */
+        .canvas-region {
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            /* Dark checkered background to show transparency */
+            background-image: 
+                linear-gradient(45deg, #151517 25%, transparent 25%, transparent 75%, #151517 75%, #151517), 
+                linear-gradient(45deg, #151517 25%, transparent 25%, transparent 75%, #151517 75%, #151517);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            background-color: #0A0A0A;
+        }
+
+        .export-frame {
+            width: 100vw;
+            aspect-ratio: 1 / 1;
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.2s ease;
+        }
+
+        .target-image {
+            width: 60%;
+            height: auto;
+            max-height: 90%;
+            object-fit: cover;
+            border-radius: 16px;
+            border: 0px solid #ffffff;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .upload-placeholder {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        /* Bottom Sheet (Controls) */
+        .editor-sheet {
+            flex: 1;
+            background-color: var(--bg-sheet);
+            border-radius: 24px 24px 0 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
+            z-index: 10;
+            margin-top: 10px;
+        }
+
+        .sheet-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 0 40px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* Control Sections */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section-header {
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .value-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Native-looking Sliders */
+        .slider-wrapper {
+            padding: 0 20px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--track);
+            border-radius: 2px;
+            outline: none;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.15);
+        }
+
+        /* Horizontal Scrolling Palettes */
+        .palette {
+            display: flex;
+            gap: 12px;
+            padding: 4px 20px 8px 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .palette::-webkit-scrollbar { display: none; }
+
+        .swatch {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+
+        .swatch.active {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 2px var(--bg-sheet), 0 0 0 4px var(--text-main);
+        }
+
+        /* Custom Color Picker Button */
+        .custom-picker-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: conic-gradient(from 180deg, #FF0000, #FF7A00, #FFD600, #00FF00, #00C7BE, #0040FF, #AF52DE, #FF0040, #FF0000);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid var(--bg-sheet);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.2);
+        }
+
+        .custom-picker-wrap::after {
+            content: '+';
+            color: white;
+            font-size: 24px;
+            font-weight: 300;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        .custom-picker-wrap input[type="color"] {
+            position: absolute;
+            opacity: 0;
+            width: 200%;
+            height: 200%;
+            cursor: pointer;
+        }
+
+        #file-input { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="btn-icon" onclick="document.getElementById('file-input').click()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        </button>
+        <div class="header-title">Pro Studio</div>
+        <button class="btn-save" onclick="downloadImage()">Export</button>
+    </header>
+
+    <input type="file" id="file-input" accept="image/*">
+
+    <!-- Edge-to-Edge Canvas Region -->
+    <div class="canvas-region">
+        <div class="export-frame" id="export-frame">
+            <div class="upload-placeholder" id="placeholder" onclick="document.getElementById('file-input').click()">
+                Tap to Add Photo
+            </div>
+            <img src="" alt="Target" class="target-image" id="target-image">
+        </div>
+    </div>
+
+    <!-- Bottom Editor Sheet -->
+    <div class="editor-sheet">
+        <div class="sheet-scroll">
+
+            <!-- Scale & Radius -->
+            <div class="control-group">
+                <div class="section-header">
+                    <span class="section-title">Scale</span>
+                    <span class="value-label" id="val-scale">60%</span>
+                </div>
+                <div class="slider-wrapper">
+                    <input type="range" id="ctrl-scale" min="20" max="100" value="60">
+                </div>
+
+                <div class="section-header" style="margin-top: 8px;">
+                    <span class="section-title">Corners</span>
+                    <span class="value-label" id="val-radius">16px</span>
+                </div>
+                <div class="slider-wrapper">
+                    <input type="range" id="ctrl-radius" min="0" max="50" value="16">
+                </div>
+            </div>
+
+            <!-- Gradients Palette -->
+            <div class="control-group">
+                <div class="section-header">
+                    <span class="section-title">Pro Gradients</span>
+                </div>
+                <div class="palette" id="palette-gradients">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Solid Colors & Transparent Palette -->
+            <div class="control-group">
+                <div class="section-header">
+                    <span class="section-title">Colors & Transparent</span>
+                </div>
+                <div class="palette" id="palette-solids">
+                    <!-- Rainbow Custom Color Chooser -->
+                    <div class="custom-picker-wrap">
+                        <input type="color" id="picker-bg" value="#000000">
+                    </div>
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Border Controls -->
+            <div class="control-group">
+                <div class="section-header">
+                    <span class="section-title">Border Thickness</span>
+                    <span class="value-label" id="val-border">0px</span>
+                </div>
+                <div class="slider-wrapper">
+                    <input type="range" id="ctrl-border-width" min="0" max="30" value="0">
+                </div>
+                
+                <div class="section-header" style="margin-top: 8px;">
+                    <span class="section-title">Border Color</span>
+                </div>
+                <div class="palette" id="palette-borders">
+                    <!-- Rainbow Custom Color Chooser -->
+                    <div class="custom-picker-wrap">
+                        <input type="color" id="picker-border" value="#FFFFFF">
+                    </div>
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const targetImg = document.getElementById('target-image');
+        const exportFrame = document.getElementById('export-frame');
+        const placeholder = document.getElementById('placeholder');
+
+        // Premium Color Data
+        const premiumGradients = [
+            "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)",
+            "linear-gradient(135deg, #FA709A 0%, #FEE140 100%)",
+            "linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)",
+            "linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)",
+            "linear-gradient(135deg, #A18CD1 0%, #FBC2EB 100%)",
+            "linear-gradient(135deg, #F6D365 0%, #FDA085 100%)",
+            "linear-gradient(135deg, #30CFD0 0%, #330867 100%)",
+            "linear-gradient(135deg, #5EE7DF 0%, #B490CA 100%)",
+            "linear-gradient(135deg, #FF0844 0%, #FFB199 100%)",
+            "linear-gradient(135deg, #89F7FE 0%, #66A6FF 100%)",
+            "linear-gradient(135deg, #BFF098 0%, #6FD6FF 100%)",
+            "linear-gradient(135deg, #243949 0%, #517FA4 100%)",
+            "linear-gradient(135deg, #09203F 0%, #537895 100%)"
+        ];
+
+        // "transparent" is added at the front
+        const solidColors = [
+            "transparent", "#FFFFFF", "#000000", "#1C1C1E", "#8E8E93", 
+            "#FF3B30", "#FF9500", "#FFCC00", "#34C759", 
+            "#00C7BE", "#32ADE6", "#007AFF", "#5856D6", "#FF2D55"
+        ];
+
+        let currentBorderColor = "#FFFFFF";
+        let backgroundSwatches = [];
+
+        // File Upload
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = event => {
+                    targetImg.src = event.target.result;
+                    targetImg.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Palette Generator
+        function buildPalette(containerId, colorList, isGradient, isBorder) {
+            const container = document.getElementById(containerId);
+            
+            colorList.forEach((color, index) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'swatch';
+                
+                if (color === 'transparent') {
+                    // Render checkered background for the transparent swatch icon
+                    swatch.style.backgroundImage = 'linear-gradient(45deg, #CCC 25%, transparent 25%, transparent 75%, #CCC 75%, #CCC), linear-gradient(45deg, #CCC 25%, transparent 25%, transparent 75%, #CCC 75%, #CCC)';
+                    swatch.style.backgroundSize = '14px 14px';
+                    swatch.style.backgroundPosition = '0 0, 7px 7px';
+                    swatch.style.backgroundColor = '#FFFFFF';
+                } else {
+                    swatch.style.background = color;
+                }
+
+                if (isGradient && index === 0 && !isBorder) swatch.classList.add('active');
+                if (!isBorder) backgroundSwatches.push(swatch);
+
+                swatch.addEventListener('click', () => {
+                    if (isBorder) {
+                        Array.from(container.children).forEach(c => c.classList.remove('active'));
+                        swatch.classList.add('active');
+                        currentBorderColor = color;
+                        updateBorder();
+                    } else {
+                        backgroundSwatches.forEach(s => s.classList.remove('active'));
+                        swatch.classList.add('active');
+                        exportFrame.style.background = color;
+                    }
+                });
+
+                container.appendChild(swatch);
+            });
+        }
+
+        // Initialize Palettes
+        buildPalette('palette-gradients', premiumGradients, true, false);
+        buildPalette('palette-solids', solidColors, false, false);
+        buildPalette('palette-borders', solidColors, false, true);
+
+        // Custom Pickers
+        document.getElementById('picker-bg').addEventListener('input', e => {
+            backgroundSwatches.forEach(s => s.classList.remove('active'));
+            exportFrame.style.background = e.target.value;
+        });
+
+        document.getElementById('picker-border').addEventListener('input', e => {
+            currentBorderColor = e.target.value;
+            updateBorder();
+        });
+
+        // Sliders
+        document.getElementById('ctrl-scale').addEventListener('input', e => {
+            targetImg.style.width = `${e.target.value}%`;
+            document.getElementById('val-scale').innerText = `${e.target.value}%`;
+        });
+
+        document.getElementById('ctrl-radius').addEventListener('input', e => {
+            targetImg.style.borderRadius = `${e.target.value}px`;
+            document.getElementById('val-radius').innerText = `${e.target.value}px`;
+        });
+
+        function updateBorder() {
+            const w = document.getElementById('ctrl-border-width').value;
+            targetImg.style.border = `${w}px solid ${currentBorderColor}`;
+            document.getElementById('val-border').innerText = `${w}px`;
+        }
+        document.getElementById('ctrl-border-width').addEventListener('input', updateBorder);
+
+        // Export functionality
+        function downloadImage() {
+            if (targetImg.style.display === 'none') {
+                alert("Upload a photo first!");
+                return;
+            }
+
+            const btn = document.querySelector('.btn-save');
+            btn.innerText = "Exporting...";
+            btn.style.opacity = '0.5';
+
+            html2canvas(exportFrame, {
+                scale: 3,
+                useCORS: true,
+                backgroundColor: null // Honors transparent background properly
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `ProStudio_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                btn.innerText = "Export";
+                btn.style.opacity = '1';
+            }).catch(() => {
+                alert("Failed to export image. Try again.");
+                btn.innerText = "Export";
+                btn.style.opacity = '1';
+            });
+        }
+    </script>
+</body>
+</html>

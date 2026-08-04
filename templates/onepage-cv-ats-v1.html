@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>John Doe - Software Engineer Resume</title>
+    <style>
+      @media print {
+        body {
+          margin: 0;
+        }
+        .resume {
+          box-shadow: none;
+          border: none;
+        }
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Calibri', 'Arial', sans-serif;
+        background: #f5f5f5;
+        padding: 10px;
+        line-height: 1.4;
+        color: #333;
+      }
+      .resume {
+        width: 210mm;
+        background: white;
+        margin: 0 auto;
+        padding: 12mm 15mm;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        border-bottom: 1.5px solid #2c3e50;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+      .name {
+        font-size: 26px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 4px;
+        letter-spacing: 1px;
+      }
+      .title {
+        font-size: 14px;
+        color: #34495e;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .contact {
+        font-size: 10.5px;
+        color: #555;
+        line-height: 1.5;
+      }
+      .contact a {
+        color: #2980b9;
+        text-decoration: none;
+      }
+      .section {
+        margin-bottom: 10px;
+      }
+      .section-title {
+        font-size: 14px;
+        font-weight: bold;
+        color: #2c3e50;
+        text-transform: uppercase;
+        border-bottom: 1.5px solid #2c3e50;
+        padding-bottom: 3px;
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+      }
+      .summary {
+        font-size: 10.5px;
+        text-align: justify;
+        line-height: 1.4;
+      }
+      .skills-list {
+        font-size: 10.5px;
+        line-height: 1.6;
+      }
+      .skills-list strong {
+        font-weight: bold;
+        color: #2c3e50;
+        min-width: 90px;
+        display: inline-block;
+      }
+      .experience-item {
+        margin-bottom: 10px;
+      }
+      .job-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 2px;
+      }
+      .job-title {
+        font-size: 12px;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+      .job-duration {
+        font-size: 10.5px;
+        color: #555;
+        font-style: italic;
+      }
+      .company-name {
+        font-size: 11px;
+        color: #2980b9;
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      .responsibilities {
+        list-style-position: outside;
+        padding-left: 16px;
+        margin-top: 4px;
+      }
+      .responsibilities li {
+        font-size: 10.5px;
+        margin-bottom: 3px;
+        line-height: 1.4;
+      }
+      .project-item {
+        margin-bottom: 8px;
+      }
+      .project-title {
+        font-size: 11px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 2px;
+      }
+      .project-tech {
+        font-size: 10px;
+        color: #7f8c8d;
+        font-style: italic;
+        margin-bottom: 3px;
+      }
+      .project-desc {
+        font-size: 10.5px;
+        line-height: 1.4;
+      }
+      .education-item {
+        margin-bottom: 4px;
+      }
+      .degree {
+        font-size: 11px;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+      .institution {
+        font-size: 10.5px;
+        color: #555;
+      }
+      .two-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="resume">
+      <div class="header">
+        <div class="name">JOHN DOE</div>
+        <div class="title">Senior Software Engineer</div>
+        <div class="contact">
+          San Francisco, CA | <a href="mailto:john.doe@example.com">john.doe@example.com</a> | (555) 123-4567 | <a href="https://linkedin.com/in/johndoe">LinkedIn Profile</a>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Professional Summary</div>
+        <div class="summary">
+          Innovative Software Engineer with 5+ years of experience in full-stack development using JavaScript (React, Node.js), Python, and Java. Proven expertise in building scalable microservices, designing robust APIs, and optimizing cloud infrastructure on AWS. Skilled in Agile methodologies, CI/CD pipelines, and Test-Driven Development (TDD). Successfully led a team to reduce deployment times by 40% through automation.
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Technical Skills</div>
+        <div class="skills-list">
+          <strong>Frontend:</strong> React.js, Vue.js, TypeScript, JavaScript (ES6+), HTML5, CSS3/SASS, Redux
+          <br>
+          <strong>Backend:</strong> Node.js, Express.js, Python (Django, Flask), Java (Spring Boot)
+          <br>
+          <strong>Databases:</strong> PostgreSQL, MongoDB, Redis, DynamoDB
+          <br>
+          <strong>DevOps & Tools:</strong> AWS, Docker, Kubernetes, Jenkins, Git, CI/CD, RESTful APIs, GraphQL
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Professional Experience</div>
+        <div class="experience-item">
+          <div class="job-header">
+            <div class="job-title">Senior Software Engineer</div>
+            <div class="job-duration">June 2021 – Present</div>
+          </div>
+          <div class="company-name">TechCorp Solutions, San Francisco, CA</div>
+          <ul class="responsibilities">
+            <li>Architected and developed microservices using Node.js and Docker, deployed on AWS EKS for high availability.</li>
+            <li>Led the migration of a legacy monolith to a React/Next.js frontend with a GraphQL API gateway.</li>
+            <li>Optimized database queries in PostgreSQL, resulting in a 50% reduction in API response times.</li>
+            <li>Mentored junior developers and established code review standards, improving code quality by 30%.</li>
+            <li>Implemented automated CI/CD pipelines using Jenkins, reducing deployment times from hours to minutes.</li>
+          </ul>
+        </div>
+        <div class="experience-item">
+          <div class="job-header">
+            <div class="job-title">Software Developer</div>
+            <div class="job-duration">May 2018 – May 2021</div>
+          </div>
+          <div class="company-name">InnovateStart Inc., Austin, TX</div>
+          <ul class="responsibilities">
+            <li>Developed full-stack features for a SaaS platform using Python (Django) and React.js.</li>
+            <li>Built RESTful APIs and integrated third-party payment gateways like Stripe and PayPal.</li>
+            <li>Wrote comprehensive unit and integration tests using Jest and PyTest to ensure 95% code coverage.</li>
+            <li>Collaborated with product managers in an Agile environment to deliver features on a bi-weekly sprint cycle.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Key Projects</div>
+        <div class="project-item">
+          <div class="project-title">E-Commerce Analytics Dashboard</div>
+          <div class="project-tech">Technologies: React.js, Node.js, MongoDB, D3.js, AWS Lambda</div>
+          <div class="project-desc">Designed a real-time analytics dashboard processing over 100k events per minute. Utilized serverless functions for scalability and D3.js for interactive data visualization.</div>
+        </div>
+        <div class="project-item">
+          <div class="project-title">Automated CI/CD Pipeline Tool</div>
+          <div class="project-tech">Technologies: Python, Jenkins, Docker, Shell Scripting</div>
+          <div class="project-desc">Created an internal tool to automate the build, test, and deployment process for containerized applications, cutting manual deployment time by 80%.</div>
+        </div>
+        <div class="project-item">
+          <div class="project-title">Chat Application</div>
+          <div class="project-tech">Technologies: Vue.js, Socket.io, Node.js, Redis</div>
+          <div class="project-desc">Built a low-latency real-time chat application using WebSockets. Implemented Redis for pub/sub messaging and JWT for secure authentication.</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="two-column">
+          <div>
+            <div class="section-title">Education</div>
+            <div class="education-item">
+              <div class="degree">B.S. in Computer Science</div>
+              <div class="institution">University of California, Berkeley</div>
+              <div class="institution">2014 – 2018</div>
+            </div>
+          </div>
+          <div>
+            <div class="section-title">Certifications</div>
+            <div class="education-item">
+              <div class="degree" style="line-height: 1.6;">AWS Certified Solutions Architect</div>
+              <div class="degree" style="line-height: 1.6;">Certified Kubernetes Administrator</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

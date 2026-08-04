@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dark Loopable Background</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        overflow: hidden;
+        background: #000;
+      }
+
+      .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          ellipse at center,
+          #0a0a0a 0%,
+          #000000 100%
+        );
+      }
+
+      /* Animated gradient overlay */
+      .gradient-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          45deg,
+          transparent 30%,
+          rgba(138, 43, 226, 0.1) 50%,
+          transparent 70%
+        );
+        background-size: 200% 200%;
+        animation: gradientFlow 8s ease infinite;
+      }
+
+      @keyframes gradientFlow {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* Floating dark orbs */
+      .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.4;
+      }
+
+      .orb1 {
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, #1a0033, transparent);
+        top: -300px;
+        left: -300px;
+        animation: float1 20s infinite ease-in-out;
+      }
+
+      .orb2 {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, #0d0221, transparent);
+        bottom: -250px;
+        right: -250px;
+        animation: float2 25s infinite ease-in-out;
+      }
+
+      .orb3 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, #1a0b2e, transparent);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation: float3 30s infinite ease-in-out;
+      }
+
+      @keyframes float1 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(200px, -100px) scale(1.2);
+        }
+        66% {
+          transform: translate(-100px, 200px) scale(0.8);
+        }
+      }
+
+      @keyframes float2 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(-150px, 150px) scale(0.9);
+        }
+        66% {
+          transform: translate(100px, -200px) scale(1.1);
+        }
+      }
+
+      @keyframes float3 {
+        0%,
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+        }
+        25% {
+          transform: translate(-30%, -70%) scale(1.3);
+        }
+        50% {
+          transform: translate(-70%, -30%) scale(0.7);
+        }
+        75% {
+          transform: translate(-40%, -60%) scale(1.1);
+        }
+      }
+
+      /* Particle system */
+      .particle {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+
+      /* Light rays */
+      .light-ray {
+        position: absolute;
+        width: 1px;
+        height: 100%;
+        background: linear-gradient(
+          180deg,
+          transparent 0%,
+          rgba(138, 43, 226, 0.2) 50%,
+          transparent 100%
+        );
+        animation: rayMove 15s linear infinite;
+      }
+
+      .ray1 {
+        left: 10%;
+        animation-delay: 0s;
+      }
+      .ray2 {
+        left: 25%;
+        animation-delay: 3s;
+      }
+      .ray3 {
+        left: 40%;
+        animation-delay: 6s;
+      }
+      .ray4 {
+        left: 55%;
+        animation-delay: 9s;
+      }
+      .ray5 {
+        left: 70%;
+        animation-delay: 12s;
+      }
+      .ray6 {
+        left: 85%;
+        animation-delay: 1.5s;
+      }
+
+      @keyframes rayMove {
+        0% {
+          transform: translateY(-100%) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.6;
+        }
+        90% {
+          opacity: 0.3;
+        }
+        100% {
+          transform: translateY(100%) rotate(180deg);
+          opacity: 0;
+        }
+      }
+
+      /* Wave effect */
+      .wave {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 300px;
+        background: linear-gradient(
+          180deg,
+          transparent 0%,
+          rgba(75, 0, 130, 0.1) 100%
+        );
+        animation: waveMove 20s linear infinite;
+      }
+
+      .wave::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 200%;
+        height: 100%;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%234B0082' fill-opacity='0.1' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E")
+          repeat-x;
+        animation: waveMove 25s linear infinite reverse;
+      }
+
+      @keyframes waveMove {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      /* Mesh gradient */
+      .mesh {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0.3;
+        background:
+          radial-gradient(
+            circle at 20% 80%,
+            rgba(120, 0, 255, 0.3) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(75, 0, 130, 0.3) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 40%,
+            rgba(138, 43, 226, 0.2) 0%,
+            transparent 50%
+          );
+        animation: meshMove 15s ease infinite;
+      }
+
+      @keyframes meshMove {
+        0%,
+        100% {
+          transform: scale(1) rotate(0deg);
+        }
+        50% {
+          transform: scale(1.1) rotate(180deg);
+        }
+      }
+
+      /* Noise texture */
+      .noise {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0.02;
+        background-image: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 2px,
+          rgba(255, 255, 255, 0.1) 2px,
+          rgba(255, 255, 255, 0.1) 4px
+        );
+        animation: noiseMove 0.2s linear infinite;
+      }
+
+      @keyframes noiseMove {
+        0% {
+          transform: translate(0, 0);
+        }
+        10% {
+          transform: translate(-1%, -1%);
+        }
+        20% {
+          transform: translate(1%, 1%);
+        }
+        30% {
+          transform: translate(-1%, 1%);
+        }
+        40% {
+          transform: translate(1%, -1%);
+        }
+        50% {
+          transform: translate(-1%, -1%);
+        }
+        60% {
+          transform: translate(1%, 1%);
+        }
+        70% {
+          transform: translate(-1%, 1%);
+        }
+        80% {
+          transform: translate(1%, -1%);
+        }
+        90% {
+          transform: translate(-1%, -1%);
+        }
+        100% {
+          transform: translate(1%, 1%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="background">
+      <!-- Mesh gradient layer -->
+      <div class="mesh"></div>
+
+      <!-- Animated gradient overlay -->
+      <div class="gradient-overlay"></div>
+
+      <!-- Floating orbs -->
+      <div class="orb orb1"></div>
+      <div class="orb orb2"></div>
+      <div class="orb orb3"></div>
+
+      <!-- Light rays -->
+      <div class="light-ray ray1"></div>
+      <div class="light-ray ray2"></div>
+      <div class="light-ray ray3"></div>
+      <div class="light-ray ray4"></div>
+      <div class="light-ray ray5"></div>
+      <div class="light-ray ray6"></div>
+
+      <!-- Wave effect -->
+      <div class="wave"></div>
+
+      <!-- Noise texture -->
+      <div class="noise"></div>
+    </div>
+
+    <script>
+      // Create particles
+      function createParticles() {
+        const particleCount = 100;
+        const background = document.querySelector(".background");
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement("div");
+          particle.className = "particle";
+
+          // Random position
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.top = Math.random() * 100 + "%";
+
+          // Random size
+          const size = Math.random() * 3 + 1;
+          particle.style.width = size + "px";
+          particle.style.height = size + "px";
+
+          // Random opacity
+          particle.style.opacity = Math.random() * 0.5 + 0.1;
+
+          // Random animation
+          const duration = Math.random() * 20 + 10;
+          const delay = Math.random() * duration;
+
+          particle.style.animation = `particleFloat ${duration}s ${delay}s infinite ease-in-out`;
+
+          background.appendChild(particle);
+        }
+      }
+
+      // Add particle float animation
+      const style = document.createElement("style");
+      style.textContent = `
+            @keyframes particleFloat {
+                0%, 100% {
+                    transform: translate(0, 0) scale(1);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 0.5;
+                }
+                50% {
+                    transform: translate(${Math.random() * 200 - 100}px, ${
+                      Math.random() * 200 - 100
+                    }px) scale(${Math.random() * 0.5 + 0.5});
+                    opacity: 0.8;
+                }
+                90% {
+                    opacity: 0.5;
+                }
+            }
+        `;
+      document.head.appendChild(style);
+
+      // Initialize particles
+      createParticles();
+
+      // Add subtle mouse parallax effect
+      document.addEventListener("mousemove", (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 20;
+        const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+        document.querySelector(".mesh").style.transform =
+          `translate(${x}px, ${y}px) scale(1.1) rotate(180deg)`;
+      });
+    </script>
+  </body>
+</html>

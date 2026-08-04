@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Morse Studio</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        body {
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f3f4f6;
+        }
+        .app-container {
+            height: 100dvh; 
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        textarea::-webkit-scrollbar { width: 4px; }
+        textarea::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 4px; }
+
+        /* Output text styling for Morse Code dots and dashes */
+        .morse-text {
+            font-family: monospace;
+            font-size: 1.25rem;
+            letter-spacing: 0.1em;
+            word-spacing: 0.5em;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased overflow-hidden flex justify-center text-gray-900">
+
+    <div class="app-container flex flex-col w-full max-w-md bg-white border-x border-gray-200 shadow-2xl relative">
+        
+        <header class="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0 bg-white z-10 shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="ph-fill ph-waveform text-2xl text-gray-900"></i>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight text-gray-900 leading-none">Morse Studio</h1>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">Audio & Text Translator</p>
+                </div>
+            </div>
+            <button onclick="clearText()" class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-900 rounded-lg text-xs font-bold transition-colors">
+                <i class="ph ph-trash text-sm"></i> Clear
+            </button>
+        </header>
+
+        <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 shrink-0 flex items-center justify-between shadow-inner">
+            <span id="label-from" class="text-xs font-bold text-gray-900 uppercase tracking-widest w-24 text-center">English</span>
+            
+            <button onclick="swapMode()" class="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-full hover:bg-gray-100 active:bg-gray-200 text-gray-900 transition-colors shadow-sm">
+                <i class="ph ph-arrows-left-right text-lg"></i>
+            </button>
+            
+            <span id="label-to" class="text-xs font-bold text-gray-400 uppercase tracking-widest w-24 text-center">Morse</span>
+        </div>
+
+        <main class="flex-1 flex flex-col overflow-hidden bg-white relative">
+            
+            <div class="flex-[0.4] flex flex-col border-b border-gray-100 relative">
+                <textarea id="input-area" oninput="translateText()" placeholder="Type English text here..." 
+                          class="flex-1 w-full p-5 bg-white text-[15px] text-gray-900 outline-none resize-none placeholder-gray-300 leading-relaxed"></textarea>
+            </div>
+
+            <div class="flex-[0.6] flex flex-col bg-gray-50 relative">
+                <div class="px-5 py-2.5 bg-gray-100/80 border-b border-gray-100 flex justify-between items-center z-10">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Translation</span>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-5 hide-scrollbar">
+                    <div id="output-area" class="text-gray-900 whitespace-pre-wrap break-words min-h-full pb-10">
+                        <span class="text-gray-400 italic text-sm">Translation will appear here...</span>
+                    </div>
+                </div>
+                
+                <div id="audio-visualizer" class="hidden absolute inset-0 bg-gray-900/5 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center pointer-events-none transition-opacity">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-2 bg-gray-900 rounded-full animate-[bounce_0.5s_infinite] h-4"></div>
+                        <div class="w-2 bg-gray-900 rounded-full animate-[bounce_0.7s_infinite] h-8"></div>
+                        <div class="w-2 bg-gray-900 rounded-full animate-[bounce_0.4s_infinite] h-5"></div>
+                        <div class="w-2 bg-gray-900 rounded-full animate-[bounce_0.6s_infinite] h-7"></div>
+                        <div class="w-2 bg-gray-900 rounded-full animate-[bounce_0.5s_infinite] h-3"></div>
+                    </div>
+                    <span class="text-xs font-bold text-gray-900 uppercase tracking-widest bg-white/80 px-3 py-1 rounded-full">Playing Audio</span>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="p-4 bg-white border-t border-gray-100 shrink-0 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-30">
+            <div class="flex gap-3">
+                <button onclick="copyResult()" class="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-900 rounded-xl text-sm font-bold transition-colors flex justify-center items-center gap-2">
+                    <i class="ph ph-copy text-lg"></i>
+                    Copy
+                </button>
+                <button onclick="playAudio()" id="btn-play" disabled class="flex-[1.5] py-3.5 bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-white rounded-xl text-sm font-bold transition-colors shadow-md flex justify-center items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed">
+                    <i class="ph-fill ph-speaker-high text-lg"></i>
+                    Play Audio
+                </button>
+            </div>
+        </footer>
+        
+        <div id="toast" class="absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-bold px-4 py-3 rounded-full opacity-0 pointer-events-none transition-opacity duration-300 z-50 shadow-lg flex items-center gap-2 whitespace-nowrap">
+            <i class="ph-fill ph-check-circle text-sm text-green-400"></i> Copied to clipboard
+        </div>
+
+    </div>
+
+    <script>
+        const DOM = {
+            inputArea: document.getElementById('input-area'),
+            outputArea: document.getElementById('output-area'),
+            lblFrom: document.getElementById('label-from'),
+            lblTo: document.getElementById('label-to'),
+            btnPlay: document.getElementById('btn-play'),
+            visualizer: document.getElementById('audio-visualizer'),
+            toast: document.getElementById('toast')
+        };
+
+        let isEnglishToMorse = true;
+        let isPlaying = false;
+        let audioContext = null;
+        let oscillator = null;
+
+        // Morse Dictionary (ITU Standard)
+        const morseDict = {
+            'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+            'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+            'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+            'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+            'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--',
+            '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..',
+            '9': '----.', '0': '-----', '.': '.-.-.-', ',': '--..--', '?': '..--..',
+            '!': '-.-.--', '-': '-....-', '/': '-..-.', '@': '.--.-.', '(': '-.--.',
+            ')': '-.--.-', ' ': '/' // Using slash for word breaks visually
+        };
+
+        // Reverse Dictionary for Morse -> English
+        const reverseDict = Object.fromEntries(Object.entries(morseDict).map(([k, v]) => [v, k]));
+
+        // --- Core Translation Logic ---
+        function swapMode() {
+            isEnglishToMorse = !isEnglishToMorse;
+            
+            // Swap Labels
+            DOM.lblFrom.textContent = isEnglishToMorse ? "English" : "Morse";
+            DOM.lblFrom.className = isEnglishToMorse ? "text-xs font-bold text-gray-900 uppercase tracking-widest w-24 text-center" : "text-xs font-bold text-gray-400 uppercase tracking-widest w-24 text-center";
+            
+            DOM.lblTo.textContent = isEnglishToMorse ? "Morse" : "English";
+            DOM.lblTo.className = isEnglishToMorse ? "text-xs font-bold text-gray-400 uppercase tracking-widest w-24 text-center" : "text-xs font-bold text-gray-900 uppercase tracking-widest w-24 text-center";
+
+            // Swap Placeholder & Fonts
+            DOM.inputArea.placeholder = isEnglishToMorse ? "Type English text here..." : "Type Morse code here (e.g. .... . .-.. .-.. ---)";
+            
+            // Re-translate current text
+            const currentOutput = DOM.outputArea.innerText;
+            if (currentOutput && !currentOutput.includes('Translation will appear here')) {
+                DOM.inputArea.value = currentOutput;
+            } else {
+                DOM.inputArea.value = '';
+            }
+            translateText();
+        }
+
+        function translateText() {
+            const input = DOM.inputArea.value.trim().toUpperCase();
+            
+            if (!input) {
+                DOM.outputArea.innerHTML = '<span class="text-gray-400 italic text-sm">Translation will appear here...</span>';
+                DOM.btnPlay.disabled = true;
+                return;
+            }
+
+            DOM.btnPlay.disabled = false;
+            let result = '';
+
+            if (isEnglishToMorse) {
+                // English to Morse
+                result = input.split('').map(char => {
+                    return morseDict[char] !== undefined ? morseDict[char] : char; // Keep unknown chars as is
+                }).join(' ');
+                
+                DOM.outputArea.className = "text-gray-900 whitespace-pre-wrap break-words min-h-full pb-10 morse-text";
+                DOM.outputArea.textContent = result;
+            } else {
+                // Morse to English
+                // Handle multiple spaces and slashes as word boundaries
+                const words = input.split(/\s*\/\s*|\s{3,}/); 
+                
+                result = words.map(word => {
+                    return word.split(/\s+/).map(char => {
+                        return reverseDict[char] !== undefined ? reverseDict[char] : char;
+                    }).join('');
+                }).join(' ');
+                
+                DOM.outputArea.className = "text-[15px] text-gray-900 whitespace-pre-wrap break-words min-h-full pb-10 font-bold tracking-wide";
+                DOM.outputArea.textContent = result;
+            }
+        }
+
+        function clearText() {
+            DOM.inputArea.value = '';
+            translateText();
+            DOM.inputArea.focus();
+        }
+
+        // --- Audio Synthesizer (Web Audio API) ---
+        async function playAudio() {
+            if (isPlaying) return; // Prevent overlapping playback
+            
+            const morseString = isEnglishToMorse ? DOM.outputArea.textContent : DOM.inputArea.value;
+            if (!morseString || morseString.includes('Translation will appear')) return;
+
+            isPlaying = true;
+            DOM.visualizer.classList.remove('hidden');
+            DOM.btnPlay.disabled = true;
+            DOM.btnPlay.innerHTML = '<i class="ph-fill ph-stop-circle text-lg"></i> Playing...';
+
+            try {
+                // Initialize Audio Context on user interaction (required by browsers)
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                const dotDuration = 80; // base unit in ms (speed)
+                const freq = 600; // pitch in Hz
+
+                for (let i = 0; i < morseString.length; i++) {
+                    const char = morseString[i];
+                    
+                    if (char === '.') {
+                        await beep(dotDuration, freq);
+                        await sleep(dotDuration); // space between parts of same letter
+                    } 
+                    else if (char === '-') {
+                        await beep(dotDuration * 3, freq);
+                        await sleep(dotDuration);
+                    } 
+                    else if (char === ' ') {
+                        await sleep(dotDuration * 3); // space between letters
+                    } 
+                    else if (char === '/') {
+                        await sleep(dotDuration * 7); // space between words
+                    }
+                }
+            } catch (e) {
+                console.error("Audio playback error:", e);
+            } finally {
+                isPlaying = false;
+                DOM.visualizer.classList.add('hidden');
+                DOM.btnPlay.disabled = false;
+                DOM.btnPlay.innerHTML = '<i class="ph-fill ph-speaker-high text-lg"></i> Play Audio';
+            }
+        }
+
+        function beep(duration, frequency) {
+            return new Promise((resolve) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = frequency;
+                
+                // Prevent clicking sound at start/end of beep by ramping gain
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
+                gainNode.gain.setValueAtTime(1, audioContext.currentTime + (duration/1000) - 0.01);
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + (duration/1000));
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                
+                setTimeout(() => {
+                    oscillator.stop();
+                    oscillator.disconnect();
+                    gainNode.disconnect();
+                    resolve();
+                }, duration);
+            });
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // --- Utilities ---
+        async function copyResult() {
+            const text = DOM.outputArea.textContent;
+            if (!text || text.includes('Translation will appear')) return;
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast();
+            } catch (err) {
+                // Fallback
+                const tempInput = document.createElement("textarea");
+                tempInput.value = text;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+                showToast();
+            }
+        }
+
+        function showToast() {
+            DOM.toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                DOM.toast.classList.add('opacity-0');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

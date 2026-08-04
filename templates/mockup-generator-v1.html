@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Mockup Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+
+    /* Android-like */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #fafafa;
+      overflow: hidden;
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 30;
+    }
+
+    .drawer-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 280px;
+      background: white;
+      shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 40;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-top: 16px;
+    }
+
+    .drawer.active {
+      transform: translateX(0);
+    }
+
+    .drawer-content {
+      padding: 16px;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 12px;
+    }
+
+    .drawer-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #212121;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .close-btn:active {
+      background: #f0f0f0;
+    }
+
+    .app-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #fff;
+    }
+
+    .app-header {
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      height: 56px;
+    }
+
+    .app-header-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #212121;
+      flex: 1;
+      text-align: center;
+    }
+
+    .hamburger {
+      background: none;
+      border: none;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.2s;
+      color: #666;
+      font-size: 20px;
+    }
+
+    .hamburger:active {
+      background: #f0f0f0;
+    }
+
+    .header-spacer {
+      width: 40px;
+    }
+
+    .preview-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      padding: 16px;
+      background: #fafafa;
+      min-height: 0;
+    }
+
+    .mockup-frame {
+      background: #1a1a1a;
+      border-radius: 45px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Mobile Frame */
+    .mockup-mobile {
+      width: 390px;
+      height: 844px;
+      padding: 12px;
+      scale:0.8;
+    }
+
+    .mockup-mobile::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 28px;
+      background: #000;
+      border-radius: 0 0 40px 40px;
+      z-index: 10;
+    }
+
+    /* Tablet Frame */
+    .mockup-tablet {
+      width: 480px;
+      height: 640px;
+      padding: 10px;
+    }
+
+    /* Desktop Frame */
+    .mockup-desktop {
+      width: 680px;
+      height: 480px;
+      padding: 10px;
+    }
+
+    .mockup-screen {
+      width: 100%;
+      height: 100%;
+      background: white;
+      border-radius: 36px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .mockup-mobile .mockup-screen {
+      border-radius: 34px;
+    }
+
+    .mockup-tablet .mockup-screen {
+      border-radius: 28px;
+    }
+
+    .mockup-desktop .mockup-screen {
+      border-radius: 20px;
+    }
+
+    .mockup-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .loading-text {
+      color: #999;
+      font-size: 13px;
+    }
+
+    /* Control Sections */
+    .control-section {
+      margin-bottom: 20px;
+    }
+
+    .control-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .button-group.two-col {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .btn-option {
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f0f0f0;
+      color: #666;
+    }
+
+    .btn-option.active {
+      background: #212121 !important;
+      color: white !important;
+    }
+
+    .btn-option:active {
+      transform: scale(0.95);
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      font-family: inherit;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #212121;
+      box-shadow: 0 0 0 3px rgba(33, 33, 33, 0.1);
+    }
+
+    input[type="file"]::file-selector-button {
+      background: #212121;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 44px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .btn-export {
+      width: 100%;
+      padding: 14px;
+      background: #212121;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 12px;
+    }
+
+    .btn-export:active {
+      background: #000;
+      transform: scale(0.98);
+    }
+
+    .btn-export:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: scale(1);
+    }
+
+    .status-msg {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+
+    .status-msg.show {
+      display: block;
+    }
+
+    .status-success {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status-error {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    /* Tablet/Desktop Responsive */
+    @media (min-width: 768px) {
+      .drawer-overlay,
+      .drawer {
+        display: none !important;
+      }
+
+      .drawer.show-on-tablet {
+        display: block !important;
+        position: static;
+        transform: translateX(0) !important;
+        width: 320px;
+        height: 100%;
+        border-right: 1px solid #e0e0e0;
+        overflow-y: auto;
+      }
+
+      .drawer-overlay.show-on-tablet {
+        display: none !important;
+      }
+
+      .app-layout {
+        flex-direction: row;
+      }
+
+      .app-header {
+        display: none;
+      }
+
+      .preview-container {
+        border-left: 1px solid #e0e0e0;
+      }
+
+      .drawer-header {
+        display: block;
+        border: none;
+        padding: 16px;
+        margin: 0 0 16px 0;
+      }
+
+      .close-btn {
+        display: none;
+      }
+
+      .drawer-title {
+        margin-bottom: 0;
+      }
+
+      .drawer-content {
+        padding: 0 16px;
+      }
+
+      .mockup-mobile {
+        width: 300px;
+        height: 600px;
+      }
+
+      .mockup-tablet {
+        width: 520px;
+        height: 720px;
+      }
+
+      .mockup-desktop {
+        width: 760px;
+        height: 540px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .mockup-mobile {
+        width: 340px;
+        height: 680px;
+      }
+
+      .mockup-tablet {
+        width: 620px;
+        height: 850px;
+      }
+
+      .mockup-desktop {
+        width: 900px;
+        height: 600px;
+      }
+    }
+
+    /* Hide scrollbar */
+    .drawer::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .drawer::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .drawer::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 2px;
+    }
+
+    .preview-container::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    .preview-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .preview-container::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 2px;
+    }
+
+    #exportContainer {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- DRAWER OVERLAY -->
+  <div id="drawerOverlay" class="drawer-overlay" onclick="toggleDrawer()"></div>
+
+  <!-- LEFT DRAWER -->
+  <div id="drawer" class="drawer">
+    <div class="drawer-header">
+      <span class="drawer-title">Options</span>
+      <button class="close-btn" onclick="toggleDrawer()">✕</button>
+    </div>
+
+    <div class="drawer-content">
+      <!-- Image Fit Options -->
+      <div class="control-section">
+        <label class="control-label">Image Fit</label>
+        <div class="button-group">
+          <button class="btn-option active" onclick="setImageFit('cover')" data-fit="cover">Cover</button>
+          <button class="btn-option inactive" onclick="setImageFit('contain')" data-fit="contain">Contain</button>
+          <button class="btn-option inactive" onclick="setImageFit('fill')" data-fit="fill">Fill</button>
+        </div>
+      </div>
+
+      <!-- Image Source -->
+      <div class="control-section">
+        <label class="control-label">Image Source</label>
+        <div class="button-group two-col">
+          <button class="btn-option active" onclick="switchSource('url')" data-source="url">URL</button>
+          <button class="btn-option inactive" onclick="switchSource('file')" data-source="file">Upload</button>
+        </div>
+      </div>
+
+      <!-- URL Input -->
+      <div id="urlSection">
+        <input id="urlInput" class="input-field" type="text" placeholder="Paste image URL..." />
+        <button class="btn-export" onclick="loadFromUrl()" style="margin-top: 0; background: #1976d2; color: white;">Load Image</button>
+      </div>
+
+      <!-- File Upload -->
+      <div id="fileSection" style="display: none;">
+        <input id="fileInput" class="input-field" type="file" accept="image/*" onchange="loadFromFile()" />
+      </div>
+
+      <!-- Export Button -->
+      <button id="exportBtn" class="btn-export" onclick="exportImage()">
+        ↓ Export 4K PNG
+      </button>
+
+      <!-- Status -->
+      <div id="statusMsg" class="status-msg"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="app-layout">
+    <!-- HEADER -->
+    <div class="app-header">
+      <button class="hamburger" onclick="toggleDrawer()">☰</button>
+      <div class="app-header-title">Mockup</div>
+      <div class="header-spacer"></div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-container">
+      <div id="mockupWrapper">
+        <div id="mockupFrame" class="mockup-frame mockup-mobile">
+          <div class="mockup-screen">
+            <span class="loading-text">Load image...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR (for tablet+) -->
+  <div id="drawer" class="drawer show-on-tablet">
+    <div class="drawer-header">
+      <span class="drawer-title">Options</span>
+    </div>
+
+    <div class="drawer-content">
+      <!-- Image Fit Options -->
+      <div class="control-section">
+        <label class="control-label">Image Fit</label>
+        <div class="button-group">
+          <button class="btn-option active" onclick="setImageFit('cover')" data-fit="cover">Cover</button>
+          <button class="btn-option inactive" onclick="setImageFit('contain')" data-fit="contain">Contain</button>
+          <button class="btn-option inactive" onclick="setImageFit('fill')" data-fit="fill">Fill</button>
+        </div>
+      </div>
+
+      <!-- Image Source -->
+      <div class="control-section">
+        <label class="control-label">Image Source</label>
+        <div class="button-group two-col">
+          <button class="btn-option active" onclick="switchSource('url')" data-source="url">URL</button>
+          <button class="btn-option inactive" onclick="switchSource('file')" data-source="file">Upload</button>
+        </div>
+      </div>
+
+      <!-- URL Input -->
+      <div id="urlSection2">
+        <input id="urlInput2" class="input-field" type="text" placeholder="Paste image URL..." />
+        <button class="btn-export" onclick="loadFromUrl()" style="margin-top: 0; background: #1976d2; color: white;">Load Image</button>
+      </div>
+
+      <!-- File Upload -->
+      <div id="fileSection2" style="display: none;">
+        <input id="fileInput2" class="input-field" type="file" accept="image/*" onchange="loadFromFile()" />
+      </div>
+
+      <!-- Export Button -->
+      <button id="exportBtn2" class="btn-export" onclick="exportImage()">
+        ↓ Export 4K PNG
+      </button>
+
+      <!-- Status -->
+      <div id="statusMsg2" class="status-msg"></div>
+    </div>
+  </div>
+
+  <!-- Export Container (hidden) -->
+  <div id="exportContainer">
+    <div id="exportFrame" class="mockup-frame mockup-mobile">
+      <div class="mockup-screen">
+        <span class="loading-text">Exporting...</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const devices = {
+      mobile: { class: 'mockup-mobile' }
+    };
+
+    let currentDevice = 'mobile';
+    let currentSource = 'url';
+    let currentImageData = null;
+    let currentImageFit = 'cover';
+    let hasImage = false;
+
+    // Toggle Drawer
+    function toggleDrawer() {
+      const drawer = document.querySelector('.drawer:not(.show-on-tablet)');
+      const overlay = document.getElementById('drawerOverlay');
+      
+      drawer.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+
+    // Close drawer when clicking outside
+    document.addEventListener('click', (e) => {
+      const drawer = document.querySelector('.drawer:not(.show-on-tablet)');
+      const hamburger = document.querySelector('.hamburger');
+      
+      if (!drawer.contains(e.target) && !hamburger.contains(e.target)) {
+        drawer.classList.remove('active');
+        document.getElementById('drawerOverlay').classList.remove('active');
+      }
+    });
+
+    // Set Device
+    // Set Image Fit
+    function setImageFit(fit) {
+      currentImageFit = fit;
+
+      document.querySelectorAll('[data-fit]').forEach(btn => {
+        if (btn.dataset.fit === fit) {
+          btn.classList.add('btn-option');
+          btn.classList.add('active');
+        } else {
+          btn.classList.add('btn-option');
+          btn.classList.remove('active');
+        }
+      });
+
+      if (hasImage) {
+        renderImage(currentImageData);
+      }
+    }
+
+    // Scale Preview for Mobile
+    function scalePreview() {
+      const wrapper = document.getElementById('mockupWrapper');
+      const container = document.querySelector('.preview-container');
+      
+      if (!container) return;
+
+      const maxWidth = container.clientWidth - 32;
+      const maxHeight = container.clientHeight - 32;
+
+      const frameWidth = 390;
+      const frameHeight = 844;
+
+      const scaleX = maxWidth / frameWidth;
+      const scaleY = maxHeight / frameHeight;
+      const scale = Math.min(scaleX, scaleY, 1);
+
+      wrapper.style.transform = `scale(${scale})`;
+      wrapper.style.transformOrigin = 'center';
+    }
+
+    // Re-scale on window resize
+    window.addEventListener('resize', scalePreview);
+
+    // Switch Source
+    function switchSource(source) {
+      currentSource = source;
+      document.getElementById('urlSection').style.display = source === 'url' ? 'block' : 'none';
+      document.getElementById('fileSection').style.display = source === 'file' ? 'block' : 'none';
+
+      document.querySelectorAll('[data-source]').forEach(btn => {
+        if (btn.dataset.source === source) {
+          btn.classList.add('btn-option');
+          btn.classList.add('active');
+        } else {
+          btn.classList.add('btn-option');
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    // Load from URL
+    function loadFromUrl() {
+      const input = document.getElementById('urlInput').value.trim() || document.getElementById('urlInput2').value.trim();
+      
+      if (!input) {
+        showStatus('Enter image URL', 'error');
+        return;
+      }
+
+      updateScreen('<span class="loading-text">Loading...</span>');
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        currentImageData = input;
+        hasImage = true;
+        renderImage(input);
+        showStatus('✓ Image loaded', 'success');
+        toggleDrawer();
+      };
+
+      img.onerror = () => {
+        showStatus('✗ Failed to load', 'error');
+        updateScreen('<span class="loading-text">Load image...</span>');
+      };
+
+      img.src = input;
+    }
+
+    // Load from File
+    function loadFromFile() {
+      const fileInput = document.getElementById('fileInput').files[0] || document.getElementById('fileInput2').files[0];
+      
+      if (!fileInput) return;
+
+      if (!fileInput.type.startsWith('image/')) {
+        showStatus('✗ Invalid image', 'error');
+        return;
+      }
+
+      updateScreen('<span class="loading-text">Loading...</span>');
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentImageData = e.target.result;
+        hasImage = true;
+        renderImage(e.target.result);
+        showStatus('✓ Image loaded', 'success');
+        toggleDrawer();
+      };
+
+      reader.onerror = () => {
+        showStatus('✗ Failed to read', 'error');
+        updateScreen('<span class="loading-text">Load image...</span>');
+      };
+
+      reader.readAsDataURL(fileInput);
+    }
+
+    // Render Image
+    function renderImage(src) {
+      const screen = document.querySelector('.mockup-screen');
+      screen.innerHTML = `<img src="${src}" style="width: 100%; height: 100%; object-fit: ${currentImageFit};" />`;
+      setTimeout(scalePreview, 0);
+    }
+
+    // Update Screen
+    function updateScreen(html) {
+      const screen = document.querySelector('.mockup-screen');
+      screen.innerHTML = html;
+      setTimeout(scalePreview, 0);
+    }
+
+    // Update Background
+    // Show Status
+    function showStatus(msg, type) {
+      const status1 = document.getElementById('statusMsg');
+      const status2 = document.getElementById('statusMsg2');
+      
+      status1.textContent = msg;
+      status1.className = `status-msg show status-${type}`;
+      
+      status2.textContent = msg;
+      status2.className = `status-msg show status-${type}`;
+      
+      setTimeout(() => {
+        status1.classList.remove('show');
+        status2.classList.remove('show');
+      }, 3000);
+    }
+
+    // Export 4K
+    async function exportImage() {
+      if (!hasImage) {
+        showStatus('✗ Load image first', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('exportBtn') || document.getElementById('exportBtn2');
+      btn.disabled = true;
+      btn.textContent = 'Exporting...';
+
+      try {
+        // Get the image source from the current preview
+        const previewScreen = document.querySelector('.mockup-screen img');
+        if (!previewScreen) {
+          showStatus('✗ No image loaded', 'error');
+          btn.disabled = false;
+          btn.textContent = '↓ Export 4K PNG';
+          return;
+        }
+        
+        const imageSrc = previewScreen.src;
+
+        // Create export container with proper styling for mobile only
+        const exportContainer = document.getElementById('exportContainer');
+        exportContainer.innerHTML = '';
+        
+        // Create mobile mockup export HTML
+        const exportHTML = `
+          <div style="
+            background: #1a1a1a;
+            border-radius: 45px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            width: 390px;
+            height: 844px;
+          ">
+            <div style="
+              border-radius: 34px;
+              width: 100%;
+              height: 100%;
+              background: white;
+              overflow: hidden;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              position: relative;
+            ">
+              <img src="${imageSrc}" style="
+                width: 100%;
+                height: 100%;
+                object-fit: ${currentImageFit};
+                display: block;
+              " />
+            </div>
+            <div style="
+              position: absolute;
+              top: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 150px;
+              height: 28px;
+              background: #000;
+              border-radius: 0 0 40px 40px;
+              z-index: 10;
+            "></div>
+          </div>
+        `;
+        
+        exportContainer.innerHTML = exportHTML;
+        exportContainer.style.position = 'fixed';
+        exportContainer.style.left = '0';
+        exportContainer.style.top = '0';
+        exportContainer.style.width = '100%';
+        exportContainer.style.height = '100%';
+        exportContainer.style.display = 'flex';
+        exportContainer.style.alignItems = 'center';
+        exportContainer.style.justifyContent = 'center';
+        exportContainer.style.backgroundColor = 'white';
+        exportContainer.style.zIndex = '99999';
+
+        // Wait for image to load and render
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Get the mockup div we just created
+        const mockupDiv = exportContainer.querySelector('div');
+        
+        // Capture with html2canvas
+        const canvas = await html2canvas(mockupDiv, {
+          scale: 3,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: null,
+        });
+
+        // Hide export container
+        exportContainer.style.display = 'none';
+
+        // Download
+        canvas.toBlob((blob) => {
+          if (!blob) throw new Error('Canvas to blob failed');
+          
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `mockup-${Date.now()}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+          
+          showStatus('✓ Exported!', 'success');
+          btn.disabled = false;
+          btn.textContent = '↓ Export 4K PNG';
+        }, 'image/png', 1);
+      } catch (error) {
+        console.error('Export error:', error);
+        showStatus('✗ Export failed: ' + error.message, 'error');
+        const btn = document.getElementById('exportBtn') || document.getElementById('exportBtn2');
+        btn.disabled = false;
+        btn.textContent = '↓ Export 4K PNG';
+      }
+    }
+  </script>
+</body>
+</html>

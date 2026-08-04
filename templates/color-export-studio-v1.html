@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Color Studio Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Premium Mobile-First Base */
+        :root {
+            --bg-base: #000000;
+            --bg-sheet: #1C1C1E;
+            --bg-element: #2C2C2E;
+            --text-main: #FFFFFF;
+            --text-sub: #EBEBF599;
+            --accent: #0A84FF;
+            --accent-text: #FFFFFF;
+            --track: #3A3A3C;
+            --border-light: rgba(255,255,255,0.1);
+            --radius-lg: 24px;
+            --radius-md: 12px;
+            
+            --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, sans-serif;
+            --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--sans);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Header ── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-base);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .btn-icon {
+            background: var(--bg-element);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-icon:active { opacity: 0.7; }
+        .btn-icon svg { width: 14px; height: 14px; }
+
+        /* ── Preview Area (Top Half) ── */
+        .preview-region {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background-image: 
+                linear-gradient(45deg, #111 25%, transparent 25%, transparent 75%, #111 75%, #111), 
+                linear-gradient(45deg, #111 25%, transparent 25%, transparent 75%, #111 75%, #111);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            background-color: #050505;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .color-frame {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255,255,255,0.1);
+            border-radius: 8px;
+            transition: background 0.2s, width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* ── Editor Sheet (Bottom Half) ── */
+        .editor-sheet {
+            height: 55vh;
+            background-color: var(--bg-sheet);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .drag-indicator {
+            width: 36px;
+            height: 5px;
+            background: #505052;
+            border-radius: 4px;
+            margin: 12px auto;
+        }
+
+        .sheet-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px 40px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            scrollbar-width: none;
+        }
+        .sheet-scroll::-webkit-scrollbar { display: none; }
+
+        /* ── UI Controls ── */
+        .section-header {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        /* iOS Segmented Control */
+        .segment-control {
+            display: flex;
+            background: rgba(0,0,0,0.2);
+            padding: 3px;
+            border-radius: 9px;
+            position: relative;
+        }
+        .segment-btn {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            background: transparent;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .segment-btn.active {
+            background: var(--bg-element);
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Form Sections */
+        .form-section { display: none; flex-direction: column; gap: 20px; }
+        .form-section.active { display: flex; }
+
+        /* Custom Color Pickers */
+        .color-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-element);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+        }
+
+        .color-label { font-size: 15px; font-weight: 500; }
+
+        .custom-picker-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--border-light);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .custom-picker-wrap input[type="color"] {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            cursor: pointer;
+            opacity: 0;
+        }
+
+        /* Sliders & Selects */
+        .slider-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: var(--bg-element);
+            padding: 16px;
+            border-radius: var(--radius-md);
+        }
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--track);
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        select.input-field {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-element);
+            color: var(--text-main);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 500;
+            outline: none;
+            appearance: none;
+        }
+
+        /* Dimension Chips */
+        .chip-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+        }
+        .chip-scroll::-webkit-scrollbar { display: none; }
+
+        .dim-chip {
+            background: var(--bg-element);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            flex-shrink: 0;
+            min-width: 110px;
+        }
+        .dim-chip.active { border-color: var(--accent); background: rgba(10, 132, 255, 0.1); }
+        
+        .dim-title { font-size: 14px; font-weight: 600; color: var(--text-main); }
+        .dim-desc { font-size: 12px; color: var(--text-sub); font-family: var(--mono); }
+
+        /* Custom Dimension Row Responsive Fixes */
+.custom-dim-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+    background: var(--bg-element);
+    padding: 12px;
+    border-radius: var(--radius-md);
+    width: 100%;
+}
+
+.custom-dim-row input {
+    flex: 1 1 0; /* Ensures both inputs take exactly equal space */
+    min-width: 0; /* Crucial: Prevents input from pushing past screen bounds */
+    background: rgba(0,0,0,0.2);
+    border: 1px solid transparent;
+    color: var(--text-main);
+    padding: 12px 8px;
+    border-radius: 8px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.custom-dim-row input:focus {
+    background: rgba(0,0,0,0.4);
+    border-color: var(--accent);
+}
+
+.custom-dim-row span {
+    color: var(--text-sub);
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0; /* Prevents the '×' from being compressed */
+}
+
+/* Hide default number input arrows (spinners) for clean mobile UI */
+.custom-dim-row input[type="number"]::-webkit-inner-spin-button,
+.custom-dim-row input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.custom-dim-row input[type="number"] {
+    -moz-appearance: textfield; /* Firefox fix */
+}
+
+        /* Action Grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: auto;
+        }
+        .btn-dl {
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #ffffff;
+            transition: transform 0.1s;
+        }
+        .btn-dl:active { transform: scale(0.96); }
+        .btn-png { background: var(--accent); }
+        .btn-jpg { background: #34C759; }
+        .btn-dl svg { width: 18px; height: 18px; }
+
+        /* Off-screen container */
+        #exportContainer {
+            position: fixed; top: 0; left: 0; z-index: -10; opacity: 0; pointer-events: none; padding: 100px;
+        }
+
+        /* Tablet/Desktop Tweaks */
+        @media (min-width: 800px) {
+            body { flex-direction: row; }
+            header { position: absolute; top: 0; left: 0; right: 0; background: transparent; border: none; }
+            .preview-region { height: 100vh; }
+            .editor-sheet { height: 100vh; width: 400px; border-radius: 0; box-shadow: -4px 0 24px rgba(0,0,0,0.5); }
+            .drag-indicator { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">Color Studio</div>
+        <button class="btn-icon" onclick="copyCSS()" id="copyBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+            </svg>
+            CSS
+        </button>
+    </header>
+
+    <div class="preview-region" id="previewArea">
+        <div class="color-frame" id="colorFrame" style="background: #0A84FF;"></div>
+    </div>
+
+    <div class="editor-sheet">
+        <div class="drag-indicator"></div>
+        <div class="sheet-scroll">
+            
+            <div>
+                <div class="segment-control">
+                    <button class="segment-btn active" onclick="setMode('solid', this)">Solid Color</button>
+                    <button class="segment-btn" onclick="setMode('gradient', this)">Gradient</button>
+                </div>
+            </div>
+
+            <div id="mode-solid" class="form-section active">
+                <div>
+                    <div class="section-header">Background Color</div>
+                    <div class="color-row">
+                        <span class="color-label" id="solidHex">#0A84FF</span>
+                        <div class="custom-picker-wrap" id="solidSwatch" style="background: #0A84FF;">
+                            <input type="color" id="solidPicker" value="#0A84FF" oninput="updateSolidColor()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mode-gradient" class="form-section">
+                <div>
+                    <div class="section-header">Gradient Colors</div>
+                    <div style="display:flex; flex-direction: column; gap: 8px;">
+                        <div class="color-row">
+                            <span class="color-label">Color 1</span>
+                            <div class="custom-picker-wrap" id="grad1Swatch" style="background: #FF2D55;">
+                                <input type="color" id="grad1Picker" value="#FF2D55" oninput="updateGradient()">
+                            </div>
+                        </div>
+                        <div class="color-row">
+                            <span class="color-label">Color 2</span>
+                            <div class="custom-picker-wrap" id="grad2Swatch" style="background: #5856D6;">
+                                <input type="color" id="grad2Picker" value="#5856D6" oninput="updateGradient()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span>Angle</span>
+                        <span id="angleVal">45°</span>
+                    </div>
+                    <input type="range" id="gradAngle" min="0" max="360" value="45" oninput="updateGradient()">
+                </div>
+
+                <div>
+                    <select id="gradType" class="input-field" onchange="updateGradient()">
+                        <option value="linear" selected>Linear Gradient</option>
+                        <option value="radial">Radial Gradient</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-header">Export Dimensions</div>
+                <div class="chip-scroll">
+                    <div class="dim-chip active" onclick="setDim('1920x1080', this)">
+                        <span class="dim-title">FHD (16:9)</span>
+                        <span class="dim-desc">1920 × 1080</span>
+                    </div>
+                    <div class="dim-chip" onclick="setDim('1080x1920', this)">
+                        <span class="dim-title">Mobile (9:16)</span>
+                        <span class="dim-desc">1080 × 1920</span>
+                    </div>
+                    <div class="dim-chip" onclick="setDim('1080x1080', this)">
+                        <span class="dim-title">Square (1:1)</span>
+                        <span class="dim-desc">1080 × 1080</span>
+                    </div>
+                    <div class="dim-chip" onclick="setDim('3840x2160', this)">
+                        <span class="dim-title">4K (16:9)</span>
+                        <span class="dim-desc">3840 × 2160</span>
+                    </div>
+                    <div class="dim-chip" onclick="setDim('custom', this)">
+                        <span class="dim-title">Custom</span>
+                        <span class="dim-desc">Set exact size</span>
+                    </div>
+                </div>
+
+                <div class="custom-dim-row" id="customDim" style="display: none;">
+                    <input type="number" id="customW" placeholder="Width" value="2560" oninput="updateCustomDim()">
+                    <span>×</span>
+                    <input type="number" id="customH" placeholder="Height" value="1440" oninput="updateCustomDim()">
+                </div>
+            </div>
+
+            <div class="action-grid">
+                <button class="btn-dl btn-png" id="btn-png" onclick="downloadImage('png')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Save PNG
+                </button>
+                <button class="btn-dl btn-jpg" id="btn-jpg" onclick="downloadImage('jpeg')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Save JPG
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="exportContainer"></div>
+
+    <script>
+        // State
+        let currentMode = 'solid';
+        let currentCssStr = '#0A84FF';
+        let expWidth = 1920;
+        let expHeight = 1080;
+
+        // UI Logic
+        function setMode(mode, btn) {
+            const siblings = btn.parentElement.children;
+            for(let b of siblings) b.classList.remove('active');
+            btn.classList.add('active');
+
+            document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`mode-${mode}`).classList.add('active');
+            
+            currentMode = mode;
+            if (mode === 'gradient') updateGradient();
+            else updateSolidColor();
+        }
+
+        function setDim(val, card) {
+            const siblings = card.parentElement.children;
+            for(let c of siblings) c.classList.remove('active');
+            card.classList.add('active');
+
+            if (val === 'custom') {
+                document.getElementById('customDim').style.display = 'flex';
+                updateCustomDim();
+            } else {
+                document.getElementById('customDim').style.display = 'none';
+                const dims = val.split('x');
+                expWidth = parseInt(dims[0]);
+                expHeight = parseInt(dims[1]);
+            }
+            scalePreview();
+        }
+
+        function updateCustomDim() {
+            expWidth = parseInt(document.getElementById('customW').value) || 1920;
+            expHeight = parseInt(document.getElementById('customH').value) || 1080;
+            scalePreview();
+        }
+
+        // Color Logic
+        function updateSolidColor() {
+            const hex = document.getElementById('solidPicker').value;
+            document.getElementById('solidSwatch').style.background = hex;
+            document.getElementById('solidHex').textContent = hex.toUpperCase();
+            currentCssStr = hex;
+            document.getElementById('colorFrame').style.background = currentCssStr;
+        }
+
+        function updateGradient() {
+            const c1 = document.getElementById('grad1Picker').value;
+            const c2 = document.getElementById('grad2Picker').value;
+            const angle = document.getElementById('gradAngle').value;
+            const type = document.getElementById('gradType').value;
+
+            document.getElementById('grad1Swatch').style.background = c1;
+            document.getElementById('grad2Swatch').style.background = c2;
+            document.getElementById('angleVal').textContent = angle + '°';
+
+            if (type === 'linear') {
+                currentCssStr = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+            } else {
+                currentCssStr = `radial-gradient(circle, ${c1}, ${c2})`;
+            }
+            document.getElementById('colorFrame').style.background = currentCssStr;
+        }
+
+        // Preview Scaling Logic
+        function scalePreview() {
+            const frame = document.getElementById('colorFrame');
+            const area = document.getElementById('previewArea');
+            if (!frame || !area) return;
+
+            const padding = window.innerWidth > 800 ? 80 : 48; // Responsive padding
+            const availableW = area.clientWidth - padding;
+            const availableH = area.clientHeight - padding;
+            
+            const frameRatio = expWidth / expHeight;
+            const areaRatio = availableW / availableH;
+            
+            if (frameRatio > areaRatio) {
+                frame.style.width = availableW + 'px';
+                frame.style.height = (availableW / frameRatio) + 'px';
+            } else {
+                frame.style.height = availableH + 'px';
+                frame.style.width = (availableH * frameRatio) + 'px';
+            }
+        }
+
+        window.addEventListener('resize', scalePreview);
+
+        // Copy CSS
+        async function copyCSS() {
+            try {
+                let cssRule = currentMode === 'solid' 
+                    ? `background-color: ${currentCssStr};` 
+                    : `background-image: ${currentCssStr};`;
+                    
+                await navigator.clipboard.writeText(cssRule);
+                
+                const btn = document.getElementById('copyBtn');
+                const og = btn.innerHTML;
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg> Copied!';
+                btn.style.color = '#34C759'; // Success green
+                
+                setTimeout(() => { 
+                    btn.innerHTML = og; 
+                    btn.style.color = ''; 
+                }, 2000);
+            } catch(e) {
+                alert('Copy not supported in this browser.');
+            }
+        }
+
+        // Export Logic
+        async function downloadImage(type) {
+            const btn = document.getElementById(`btn-${type}`);
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = 'Exporting...';
+            btn.style.opacity = '0.7';
+
+            try {
+                const exportContainer = document.getElementById('exportContainer');
+                exportContainer.innerHTML = ''; 
+                
+                const clone = document.createElement('div');
+                clone.style.width = expWidth + 'px';
+                clone.style.height = expHeight + 'px';
+                clone.style.background = currentCssStr;
+                
+                exportContainer.appendChild(clone);
+                await new Promise(r => setTimeout(r, 50));
+
+                const renderedCanvas = await html2canvas(clone, {
+                    scale: 1, 
+                    backgroundColor: null, 
+                    logging: false
+                });
+
+                exportContainer.innerHTML = '';
+
+                const mime = type === 'png' ? 'image/png' : 'image/jpeg';
+                const quality = type === 'png' ? 1.0 : 0.95;
+
+                renderedCanvas.toBlob((blob) => {
+                    if (!blob) throw new Error('Canvas render failed.');
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `ColorBG_${expWidth}x${expHeight}_${Date.now()}.${type}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, mime, quality);
+
+            } catch (error) {
+                console.error(error);
+                alert('Export failed. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }
+        }
+
+        // Init
+        updateSolidColor();
+        // Give the DOM a tiny fraction of a second to render the layout before scaling
+        setTimeout(scalePreview, 50);
+    </script>
+</body>
+</html>

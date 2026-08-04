@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>JSON Editor Pro</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+            colors: {
+              bg: "#0f172a", // Slate 900
+              surface: "#1e293b", // Slate 800
+              primary: "#6366f1", // Indigo 500
+              success: "#10b981", // Emerald 500
+              error: "#ef4444", // Red 500
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* --- SCROLLBARS --- */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0f172a;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+      }
+
+      /* --- EDITOR LAYER LOGIC (Bulletproof Alignment) --- */
+      .editor-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* Both layers must match EXACTLY */
+      .editor-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        letter-spacing: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow: auto;
+        tab-size: 2;
+      }
+
+      /* Background Layer (Colored Text) */
+      #editor-highlight {
+        z-index: 10;
+        pointer-events: none; /* Let clicks pass through */
+        color: transparent; /* Text is invisible, only spans have color */
+      }
+
+      /* Input Layer (Cursor & Input) */
+      #editor-input {
+        z-index: 20;
+        background: transparent;
+        color: transparent; /* Text invisible */
+        caret-color: #6366f1; /* Cursor visible */
+        border: none;
+        resize: none;
+        outline: none;
+      }
+
+      /* Syntax Colors */
+      .hl-key {
+        color: #818cf8;
+        font-weight: 500;
+      } /* Indigo */
+      .hl-string {
+        color: #34d399;
+      } /* Emerald */
+      .hl-number {
+        color: #fbbf24;
+      } /* Amber */
+      .hl-boolean {
+        color: #f472b6;
+      } /* Pink */
+      .hl-null {
+        color: #94a3b8;
+        font-style: italic;
+      } /* Slate */
+
+      /* --- TREE VIEW LOGIC (Fixed Collapse) --- */
+
+      /* Main Node Container */
+      .tree-node {
+        /* No default margin, managed by padding in children */
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* The visible line */
+      .tree-line {
+        display: flex;
+        align-items: flex-start;
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 4px;
+        user-select: none;
+      }
+
+      .tree-line:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      /* The Arrow */
+      .tree-arrow {
+        display: inline-flex;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        margin-right: 4px;
+        font-size: 10px;
+        line-height: 16px;
+        color: #64748b;
+        transition: transform 0.2s ease;
+      }
+
+      /* Indentation Guide Line */
+      .tree-guide {
+        position: relative;
+        margin-left: 12px;
+        border-left: 1px solid #334155;
+      }
+
+      /* Container for children */
+      .tree-children {
+        display: block;
+      }
+
+      /* COLLAPSED STATE LOGIC */
+
+      /* 1. Hide Children */
+      .tree-node.collapsed > .tree-children {
+        display: none;
+      }
+
+      /* 2. Hide Closing Bracket (which is a tree-line inside the node) */
+      .tree-node.collapsed > .tree-line.tree-close {
+        display: none;
+      }
+
+      /* 3. Rotate Arrow */
+      .tree-node.collapsed > .tree-line > .tree-arrow {
+        transform: rotate(-90deg);
+      }
+
+      /* 4. Hide "Open Bracket", Show "..." when collapsed */
+      .tree-node.collapsed > .tree-line > .open-bracket {
+        display: none;
+      }
+      .tree-node.collapsed > .tree-line > .collapsed-dots {
+        display: inline-block;
+      }
+
+      /* Normal state: Show bracket, hide dots */
+      .tree-node:not(.collapsed) > .tree-line > .collapsed-dots {
+        display: none;
+      }
+      .tree-node:not(.collapsed) > .tree-line > .open-bracket {
+        display: inline-block;
+      }
+
+      /* Primitive Value Styling */
+      .tree-primitive {
+        padding: 2px 4px;
+        user-select: text; /* Allow copying primitives */
+      }
+    </style>
+  </head>
+  <body
+    class="bg-bg text-slate-300 font-sans h-screen flex flex-col overflow-hidden"
+  >
+    <!-- Header -->
+    <header class="bg-surface shadow-md z-30 flex-none">
+      <div
+        class="px-4 py-3 flex justify-between items-center border-b border-slate-700"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-lg"
+          >
+            JS
+          </div>
+          <h1 class="text-lg font-medium tracking-wide text-white">
+            JSON Master
+          </h1>
+        </div>
+        <div class="flex gap-2">
+          <button
+            onclick="loadSample()"
+            class="p-2 rounded-full hover:bg-slate-700 text-slate-400 transition-colors"
+            title="Load Sample"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </button>
+          <button
+            onclick="clearEditor()"
+            class="p-2 rounded-full hover:bg-slate-700 text-slate-400 hover:text-error transition-colors"
+            title="Clear"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path
+                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="px-4 py-3 flex bg-bg">
+        <div class="bg-slate-800 p-1 rounded-lg flex w-full">
+          <button
+            id="tab-code"
+            onclick="switchTab('code')"
+            class="flex-1 py-2 text-sm font-medium rounded-md transition-all bg-slate-600 text-white shadow-sm"
+          >
+            Code Editor
+          </button>
+          <button
+            id="tab-tree"
+            onclick="switchTab('tree')"
+            class="flex-1 py-2 text-sm font-medium rounded-md transition-all text-slate-400 hover:text-white"
+          >
+            Tree View
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Error Bar -->
+    <div
+      id="error-bar"
+      class="hidden bg-error/10 border-b border-error/20 px-4 py-2 flex items-center gap-3 text-error text-sm"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span id="error-text" class="flex-1">Invalid JSON</span>
+      <button onclick="hideError()" class="hover:text-white">✕</button>
+    </div>
+
+    <!-- Content Area -->
+    <main class="flex-1 relative overflow-hidden">
+      <!-- Editor View -->
+      <div id="view-code" class="absolute inset-0 bg-bg">
+        <div class="editor-wrapper h-full w-full">
+          <pre
+            id="editor-highlight"
+            class="editor-layer"
+            aria-hidden="true"
+          ></pre>
+          <textarea
+            id="editor-input"
+            class="editor-layer"
+            spellcheck="false"
+            placeholder="Paste your JSON here..."
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Tree View -->
+      <div
+        id="view-tree"
+        class="absolute inset-0 overflow-y-auto p-4 hidden bg-bg"
+      >
+        <div id="tree-root" class="font-mono text-sm pb-20">
+          <div class="text-slate-500 text-center mt-20">
+            Enter valid JSON to view tree
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Actions -->
+    <footer class="bg-surface border-t border-slate-700 p-4 pb-6 z-30">
+      <div class="flex justify-around items-center max-w-md mx-auto">
+        <button
+          onclick="formatJSON()"
+          class="flex flex-col items-center gap-1 group"
+        >
+          <div
+            class="w-12 h-12 rounded-full bg-slate-700 group-hover:bg-slate-600 flex items-center justify-center text-slate-300 border border-slate-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="21" y1="10" x2="3" y2="10"></line>
+              <line x1="21" y1="6" x2="3" y2="6"></line>
+              <line x1="21" y1="14" x2="3" y2="14"></line>
+              <line x1="21" y1="18" x2="3" y2="18"></line>
+            </svg>
+          </div>
+          <span class="text-[10px] text-slate-400 uppercase font-bold"
+            >Format</span
+          >
+        </button>
+
+        <button
+          onclick="minifyJSON()"
+          class="flex flex-col items-center gap-1 group"
+        >
+          <div
+            class="w-12 h-12 rounded-full bg-slate-700 group-hover:bg-slate-600 flex items-center justify-center text-slate-300 border border-slate-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="4 14 10 14 10 20"></polyline>
+              <polyline points="20 10 14 10 14 4"></polyline>
+              <line x1="14" y1="10" x2="21" y2="3"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+          </div>
+          <span class="text-[10px] text-slate-400 uppercase font-bold"
+            >Minify</span
+          >
+        </button>
+
+        <button
+          onclick="copyToClipboard()"
+          class="flex flex-col items-center gap-1 group"
+        >
+          <div
+            class="w-14 h-14 -mt-6 rounded-full bg-primary shadow-lg shadow-primary/40 flex items-center justify-center text-white border-4 border-bg group-hover:bg-indigo-400 transition-all"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path
+                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+              ></path>
+            </svg>
+          </div>
+          <span class="text-[10px] text-primary font-bold uppercase mt-1"
+            >Copy</span
+          >
+        </button>
+      </div>
+    </footer>
+
+    <!-- Toast -->
+    <div
+      id="toast"
+      class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-full shadow-2xl border border-slate-700 text-sm font-medium opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2 w-max max-w-[90vw]"
+    >
+      <span id="toast-icon" class="text-success">✓</span>
+      <span id="toast-msg">Action successful</span>
+    </div>
+
+    <script>
+      // --- ELEMENTS ---
+      const input = document.getElementById("editor-input");
+      const highlight = document.getElementById("editor-highlight");
+      const treeRoot = document.getElementById("tree-root");
+      const errorBar = document.getElementById("error-bar");
+      const errorText = document.getElementById("error-text");
+      const viewCode = document.getElementById("view-code");
+      const viewTree = document.getElementById("view-tree");
+      const tabCode = document.getElementById("tab-code");
+      const tabTree = document.getElementById("tab-tree");
+
+      let currentJSON = null;
+
+      // --- EDITOR LOGIC ---
+
+      function escapeHTML(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function highlightJSON(json) {
+        json = escapeHTML(json);
+        // Regex explanation:
+        // Group 1: Strings (with optional trailing colon)
+        // Group 2: True/False/Null
+        // Group 3: Numbers
+        return json.replace(
+          /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+          function (match) {
+            let cls = "hl-number"; // default
+            if (/^"/.test(match)) {
+              if (/:$/.test(match)) {
+                cls = "hl-key"; // Property Key
+              } else {
+                cls = "hl-string"; // String Value
+              }
+            } else if (/true|false/.test(match)) {
+              cls = "hl-boolean";
+            } else if (/null/.test(match)) {
+              cls = "hl-null";
+            }
+            return `<span class="${cls}">${match}</span>`;
+          }
+        );
+      }
+
+      function updateEditor() {
+        const text = input.value;
+        highlight.innerHTML = highlightJSON(text);
+
+        // Validate
+        if (text.trim() === "") {
+          currentJSON = null;
+          hideError();
+          return;
+        }
+        try {
+          currentJSON = JSON.parse(text);
+          hideError();
+        } catch (e) {
+          currentJSON = null;
+          showError(e.message);
+        }
+      }
+
+      // Sync scroll
+      input.addEventListener("scroll", () => {
+        highlight.scrollTop = input.scrollTop;
+        highlight.scrollLeft = input.scrollLeft;
+      });
+
+      input.addEventListener("input", updateEditor);
+
+      // --- TREE VIEW LOGIC (REWRITTEN FOR RELIABILITY) ---
+
+      function createNodeHTML(data, key, isLast) {
+        const type =
+          data === null ? "null" : Array.isArray(data) ? "array" : typeof data;
+
+        // 1. Primitive Values (String, Number, Boolean, Null)
+        if (type !== "object" && type !== "array") {
+          let valClass = "text-white";
+          if (type === "string") valClass = "hl-string";
+          if (type === "number") valClass = "hl-number";
+          if (type === "boolean") valClass = "hl-boolean";
+          if (type === "null") valClass = "hl-null";
+
+          const keySpan =
+            key !== null
+              ? `<span class="hl-key">"${escapeHTML(key)}"</span>: `
+              : "";
+          const comma = isLast ? "" : ",";
+
+          // Primitive node doesn't need collapsible wrapper
+          return `<div class="tree-primitive">${keySpan}<span class="${valClass}">${escapeHTML(
+            String(data)
+          )}</span>${comma}</div>`;
+        }
+
+        // 2. Objects and Arrays
+        const isArr = type === "array";
+        const openChar = isArr ? "[" : "{";
+        const closeChar = isArr ? "]" : "}";
+        const itemCount = Object.keys(data).length;
+        const isEmpty = itemCount === 0;
+
+        const keySpan =
+          key !== null
+            ? `<span class="hl-key">"${escapeHTML(key)}"</span>: `
+            : "";
+
+        // Build Header HTML
+        // Note: We attach toggleNode(event) to the line.
+        // We stop propagation if they click a primitive text inside the header if needed, but simple is better.
+        let html = `
+            <div class="tree-node">
+                <div class="tree-line" onclick="toggleNode(this)">
+                    <span class="tree-arrow">${isEmpty ? "" : "▼"}</span>
+                    ${keySpan}
+                    <span class="open-bracket text-slate-300">${openChar}</span>
+                    <span class="collapsed-dots text-slate-500 italic">...${closeChar}</span>
+                    <span class="text-slate-600 text-xs ml-1">${
+                      !isEmpty && isArr ? `// ${itemCount} items` : ""
+                    }</span>
+                </div>
+            `;
+
+        // Build Children
+        html += `<div class="tree-children tree-guide">`;
+        if (!isEmpty) {
+          const keys = Object.keys(data);
+          keys.forEach((k, index) => {
+            const isLastChild = index === keys.length - 1;
+            // Recursive call
+            html += createNodeHTML(
+              isArr ? data[k] : data[k],
+              isArr ? null : k,
+              isLastChild
+            );
+          });
+        }
+        html += `</div>`; // End Children
+
+        // Build Footer (Closing Bracket)
+        // We add a class "tree-close" so CSS can hide it when collapsed
+        const comma = isLast ? "" : ",";
+        html += `<div class="tree-line tree-close">${closeChar}${comma}</div>`;
+
+        html += `</div>`; // End Node
+        return html;
+      }
+
+      // --- ACTIONS ---
+
+      window.toggleNode = function (el) {
+        // el is the .tree-line header
+        const node = el.parentElement; // .tree-node
+        node.classList.toggle("collapsed");
+      };
+
+      window.switchTab = function (mode) {
+        if (mode === "code") {
+          viewCode.style.display = "block";
+          viewTree.classList.add("hidden");
+          tabCode.classList.replace("text-slate-400", "text-white");
+          tabCode.classList.add("bg-slate-600");
+          tabTree.classList.replace("text-white", "text-slate-400");
+          tabTree.classList.remove("bg-slate-600");
+        } else {
+          // Render Tree
+          if (currentJSON) {
+            // Wrap in a node if it's an object/array so we can collapse root if wanted
+            // But usually we just render it.
+            // createNodeHTML returns HTML.
+            // We pass null key because it's the root.
+            treeRoot.innerHTML = createNodeHTML(currentJSON, null, true);
+
+            // Optional: Auto-collapse deep nodes? No, let user decide.
+          } else {
+            treeRoot.innerHTML = `<div class="text-slate-500 text-center mt-20">Invalid or Empty JSON</div>`;
+          }
+
+          viewCode.style.display = "none";
+          viewTree.classList.remove("hidden");
+          tabTree.classList.replace("text-slate-400", "text-white");
+          tabTree.classList.add("bg-slate-600");
+          tabCode.classList.replace("text-white", "text-slate-400");
+          tabCode.classList.remove("bg-slate-600");
+        }
+      };
+
+      window.formatJSON = function () {
+        if (!currentJSON) return showError("Cannot format invalid JSON");
+        input.value = JSON.stringify(currentJSON, null, 2);
+        updateEditor();
+        showToast("Formatted");
+      };
+
+      window.minifyJSON = function () {
+        if (!currentJSON) return showError("Cannot minify invalid JSON");
+        input.value = JSON.stringify(currentJSON);
+        updateEditor();
+        showToast("Minified");
+      };
+
+      window.copyToClipboard = function () {
+        if (!input.value) return;
+        navigator.clipboard
+          .writeText(input.value)
+          .then(() => showToast("Copied to Clipboard"));
+      };
+
+      window.loadSample = function () {
+        const sample = {
+          app: "JSON Master",
+          version: 2.0,
+          data: {
+            users: [
+              { id: 1, name: "Alice", active: true },
+              { id: 2, name: "Bob", active: null },
+            ],
+            settings: {
+              darkMode: true,
+              notifications: false,
+            },
+          },
+        };
+        input.value = JSON.stringify(sample, null, 2);
+        updateEditor();
+        showToast("Sample Loaded");
+      };
+
+      window.clearEditor = function () {
+        input.value = "";
+        updateEditor();
+        showToast("Cleared");
+      };
+
+      function showError(msg) {
+        errorBar.classList.remove("hidden");
+        errorText.textContent = msg;
+      }
+      function hideError() {
+        errorBar.classList.add("hidden");
+      }
+
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        const m = document.getElementById("toast-msg");
+        m.textContent = msg;
+        t.classList.remove("opacity-0", "translate-y-4");
+        setTimeout(() => {
+          t.classList.add("opacity-0", "translate-y-4");
+        }, 2000);
+      }
+
+      // Initialize
+      updateEditor();
+    </script>
+  </body>
+</html>

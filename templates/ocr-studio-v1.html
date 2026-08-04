@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCR Studio</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <style>
+        body {
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f3f4f6;
+        }
+        .app-container {
+            height: 100dvh; 
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        textarea::-webkit-scrollbar {
+            width: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background-color: #e5e7eb;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased overflow-hidden flex justify-center text-gray-900">
+
+    <div class="app-container flex flex-col w-full max-w-md bg-white border-x border-gray-200 shadow-2xl relative">
+        
+        <header class="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 shrink-0 bg-white z-10 shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="ph-fill ph-text-t text-2xl text-gray-900"></i>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight text-gray-900 leading-none">OCR Studio</h1>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">Text Extractor</p>
+                </div>
+            </div>
+            <button id="headerCopyBtn" onclick="copyResultText()" class="hidden items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-900 rounded-lg text-xs font-bold transition-colors">
+                <i class="ph ph-copy text-base"></i>
+                Copy
+            </button>
+        </header>
+
+        <main class="flex-1 flex flex-col overflow-y-auto hide-scrollbar bg-gray-50/50 relative">
+            
+            <div id="view-upload" class="flex-1 flex flex-col p-6 items-center justify-center animate-fade-in">
+                
+                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
+
+                <div class="w-full flex flex-col gap-4">
+                    <button onclick="document.getElementById('cameraInput').click()" class="w-full flex flex-col items-center justify-center gap-3 py-10 bg-white border-2 border-dashed border-gray-300 hover:border-gray-800 active:bg-gray-50 rounded-2xl transition-colors">
+                        <i class="ph ph-camera text-4xl text-gray-400"></i>
+                        <span class="text-sm font-bold text-gray-700">Take a Photo</span>
+                    </button>
+                    
+                    <div class="flex items-center gap-4 px-2">
+                        <div class="h-px flex-1 bg-gray-200"></div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">OR</span>
+                        <div class="h-px flex-1 bg-gray-200"></div>
+                    </div>
+
+                    <button onclick="document.getElementById('fileInput').click()" class="w-full flex items-center justify-center gap-2 py-4 bg-gray-900 hover:bg-gray-800 active:bg-gray-700 rounded-xl text-sm font-bold text-white transition-colors shadow-md">
+                        <i class="ph ph-image text-lg"></i>
+                        Upload from Gallery
+                    </button>
+                </div>
+                
+                <p class="text-xs text-gray-400 text-center mt-8 px-4 leading-relaxed font-medium">
+                    Please ensure the text is clear, well-lit, and horizontal for the best results.
+                </p>
+            </div>
+
+            <div id="view-loading" class="hidden flex-1 flex flex-col p-8 items-center justify-center text-center">
+                <i class="ph ph-spinner-gap text-5xl text-gray-900 animate-spin mb-6"></i>
+                <h2 class="text-lg font-bold text-gray-900 mb-2">Analyzing Image</h2>
+                <p id="progress-status" class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-8">Initializing Engine...</p>
+                
+                <div class="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-gray-900 transition-all duration-300 w-0 rounded-full"></div>
+                </div>
+                <p id="progress-percent" class="text-xs font-bold text-gray-900 mt-3">0%</p>
+            </div>
+
+            <div id="view-result" class="hidden flex-1 flex flex-col p-5">
+                
+                <div class="mb-4 shrink-0 bg-white border border-gray-200 p-2 rounded-xl flex gap-3 items-center shadow-sm">
+                    <img id="preview-image" src="" alt="Scanned document" class="w-12 h-12 object-cover rounded-lg bg-gray-100">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-gray-900 truncate">Scan Complete</p>
+                        <p class="text-[10px] text-gray-500 truncate mt-0.5">Edit text below if needed.</p>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Extracted Text</span>
+                    </div>
+                    <textarea id="result-text" class="flex-1 w-full p-4 text-sm text-gray-800 outline-none resize-none bg-transparent placeholder-gray-300" placeholder="Extracted text will appear here..."></textarea>
+                </div>
+            </div>
+
+        </main>
+        
+        <footer id="footer-controls" class="hidden bg-white border-t border-gray-100 p-4 shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-10 flex gap-3">
+            <button onclick="resetApp()" class="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-900 rounded-xl text-sm font-bold transition-colors flex justify-center items-center gap-2">
+                <i class="ph ph-arrow-counter-clockwise text-lg"></i>
+                New Scan
+            </button>
+            <button onclick="copyResultText()" class="flex-1 py-3.5 bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-white rounded-xl text-sm font-bold transition-colors shadow-md flex justify-center items-center gap-2">
+                <i class="ph ph-copy text-lg"></i>
+                Copy Text
+            </button>
+        </footer>
+
+        <div id="toast" class="absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-bold px-4 py-2.5 rounded-full opacity-0 pointer-events-none transition-opacity duration-300 z-50 shadow-lg flex items-center gap-2">
+            <i class="ph-fill ph-check-circle text-sm text-green-400"></i> Copied to clipboard
+        </div>
+
+        <div class="pb-safe bg-white shrink-0 border-t border-gray-100"></div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const DOM = {
+            viewUpload: document.getElementById('view-upload'),
+            viewLoading: document.getElementById('view-loading'),
+            viewResult: document.getElementById('view-result'),
+            footerControls: document.getElementById('footer-controls'),
+            headerCopyBtn: document.getElementById('headerCopyBtn'),
+            
+            fileInput: document.getElementById('fileInput'),
+            cameraInput: document.getElementById('cameraInput'),
+            
+            previewImage: document.getElementById('preview-image'),
+            resultText: document.getElementById('result-text'),
+            
+            progressStatus: document.getElementById('progress-status'),
+            progressBar: document.getElementById('progress-bar'),
+            progressPercent: document.getElementById('progress-percent'),
+            
+            toast: document.getElementById('toast')
+        };
+
+        // UI View Management
+        function showView(viewName) {
+            DOM.viewUpload.classList.add('hidden');
+            DOM.viewLoading.classList.add('hidden');
+            DOM.viewResult.classList.add('hidden');
+            DOM.footerControls.classList.add('hidden');
+            DOM.headerCopyBtn.classList.add('hidden');
+            DOM.headerCopyBtn.classList.remove('flex');
+
+            if (viewName === 'upload') {
+                DOM.viewUpload.classList.remove('hidden');
+            } else if (viewName === 'loading') {
+                DOM.viewLoading.classList.remove('hidden');
+            } else if (viewName === 'result') {
+                DOM.viewResult.classList.remove('hidden');
+                DOM.footerControls.classList.remove('hidden');
+                // Only show header copy on small screens if you want, but for now show it
+                DOM.headerCopyBtn.classList.add('flex'); 
+                DOM.headerCopyBtn.classList.remove('hidden');
+            }
+        }
+
+        // Handle File Selection
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Show preview thumbnail for the results page
+            const imageUrl = URL.createObjectURL(file);
+            DOM.previewImage.src = imageUrl;
+
+            // Reset inputs so the same file can be selected again if needed
+            DOM.fileInput.value = '';
+            DOM.cameraInput.value = '';
+
+            // Start OCR Process
+            performOCR(imageUrl);
+        }
+
+        // Core OCR Engine (Tesseract.js)
+        async function performOCR(imageUrl) {
+            showView('loading');
+            
+            // Reset Progress UI
+            DOM.progressBar.style.width = '0%';
+            DOM.progressPercent.textContent = '0%';
+            DOM.progressStatus.textContent = 'Loading engine...';
+
+            try {
+                // Initialize Worker with logging for the progress bar
+                const worker = await Tesseract.createWorker('eng', 1, {
+                    logger: m => {
+                        // Tesseract sends status updates like "recognizing text", "loading tesseract core", etc.
+                        if (m.status === 'recognizing text') {
+                            const pct = Math.round(m.progress * 100);
+                            DOM.progressBar.style.width = `${pct}%`;
+                            DOM.progressPercent.textContent = `${pct}%`;
+                            DOM.progressStatus.textContent = 'Extracting Text...';
+                        } else {
+                            // Display other initialization statuses
+                            DOM.progressStatus.textContent = m.status;
+                        }
+                    }
+                });
+
+                // Execute OCR
+                const result = await worker.recognize(imageUrl);
+                
+                // Set Result and Cleanup
+                DOM.resultText.value = result.data.text.trim() || 'No text found in image.';
+                await worker.terminate();
+                
+                showView('result');
+
+            } catch (error) {
+                console.error("OCR Error:", error);
+                alert("Failed to process image. Please try a different photo.");
+                showView('upload');
+            }
+        }
+
+        // Utilities
+        function resetApp() {
+            DOM.resultText.value = '';
+            DOM.previewImage.src = '';
+            showView('upload');
+        }
+
+        async function copyResultText() {
+            const text = DOM.resultText.value;
+            if (!text) return;
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast();
+            } catch (err) {
+                // Fallback for older browsers
+                DOM.resultText.select();
+                document.execCommand('copy');
+                showToast();
+            }
+        }
+
+        function showToast() {
+            DOM.toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                DOM.toast.classList.add('opacity-0');
+            }, 2000);
+        }
+
+        // Initialize App State
+        showView('upload');
+    </script>
+</body>
+</html>

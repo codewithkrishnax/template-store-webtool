@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Base64 Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Mobile app optimizations */
+        body {
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none; /* Prevents pull-to-refresh bounce */
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Smooth transitions */
+        .fade-enter { opacity: 0; transform: translateY(10px); }
+        .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 300ms, transform 300ms; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans h-[100dvh] w-full overflow-hidden flex flex-col">
+
+    <header class="bg-white border-b border-gray-200 px-4 py-4 pt-safe flex justify-between items-center shrink-0 z-10">
+        <h1 class="text-lg font-bold tracking-tight text-gray-900" id="header-title">Image to Base64</h1>
+        <button id="clear-btn" class="text-sm font-semibold text-gray-500 active:text-gray-900 transition-colors">Clear</button>
+    </header>
+
+    <main class="flex-1 overflow-y-auto hide-scrollbar relative">
+        
+        <div id="toast" class="absolute top-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+            Action successful
+        </div>
+
+        <div id="view-encode" class="p-4 flex flex-col gap-6 h-full pb-24">
+            
+            <div class="flex-shrink-0">
+                <input type="file" id="file-input" class="hidden" accept="image/*">
+                <div id="upload-zone" onclick="document.getElementById('file-input').click()" class="w-full aspect-video bg-white rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-2 active:bg-gray-50 transition-colors cursor-pointer overflow-hidden relative">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="text-sm font-medium text-gray-500">Tap to select image</span>
+                    <img id="encode-preview" class="absolute inset-0 w-full h-full object-contain bg-black/5 hidden" alt="Preview">
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col gap-2 min-h-[200px]">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Base64 Output</label>
+                <textarea id="encode-output" readonly placeholder="Base64 string will appear here..." class="w-full flex-1 bg-white border border-gray-200 rounded-xl p-4 text-xs font-mono text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"></textarea>
+                
+                <button id="copy-btn" disabled class="w-full py-4 mt-2 bg-gray-900 text-white rounded-xl font-bold text-[15px] active:scale-[0.98] transition-transform disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    Copy Base64
+                </button>
+            </div>
+        </div>
+
+        <div id="view-decode" class="hidden p-4 flex-col gap-6 h-full pb-24">
+            
+            <div class="flex-1 flex flex-col gap-2 min-h-[200px]">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Base64 Input</label>
+                <textarea id="decode-input" placeholder="Paste your Base64 string here..." class="w-full flex-1 bg-white border border-gray-200 rounded-xl p-4 text-xs font-mono text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"></textarea>
+            </div>
+
+            <div class="flex-shrink-0 flex flex-col gap-4">
+                <div class="w-full aspect-video bg-white rounded-2xl border border-gray-200 flex items-center justify-center overflow-hidden">
+                    <span id="decode-placeholder" class="text-sm font-medium text-gray-400">Preview will appear here</span>
+                    <img id="decode-preview" class="w-full h-full object-contain hidden" alt="Decoded preview">
+                </div>
+                
+                <button id="download-btn" disabled class="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-[15px] active:scale-[0.98] transition-transform disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download Image
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bg-white border-t border-gray-200 pb-safe shrink-0 absolute bottom-0 w-full z-20">
+        <div class="flex">
+            <button id="tab-encode" class="flex-1 py-4 flex flex-col items-center gap-1 text-gray-900 relative">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span class="text-[10px] font-bold tracking-wide">ENCODE</span>
+                <div id="ind-encode" class="absolute top-0 inset-x-8 h-0.5 bg-gray-900 rounded-b-full"></div>
+            </button>
+            
+            <button id="tab-decode" class="flex-1 py-4 flex flex-col items-center gap-1 text-gray-400 relative">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                <span class="text-[10px] font-bold tracking-wide">DECODE</span>
+                <div id="ind-decode" class="absolute top-0 inset-x-8 h-0.5 bg-gray-900 rounded-b-full hidden"></div>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // DOM Elements
+        const views = { encode: document.getElementById('view-encode'), decode: document.getElementById('view-decode') };
+        const tabs = { encode: document.getElementById('tab-encode'), decode: document.getElementById('tab-decode') };
+        const indicators = { encode: document.getElementById('ind-encode'), decode: document.getElementById('ind-decode') };
+        const headerTitle = document.getElementById('header-title');
+        
+        // Encode Elements
+        const fileInput = document.getElementById('file-input');
+        const encodePreview = document.getElementById('encode-preview');
+        const encodeOutput = document.getElementById('encode-output');
+        const copyBtn = document.getElementById('copy-btn');
+        
+        // Decode Elements
+        const decodeInput = document.getElementById('decode-input');
+        const decodePreview = document.getElementById('decode-preview');
+        const decodePlaceholder = document.getElementById('decode-placeholder');
+        const downloadBtn = document.getElementById('download-btn');
+
+        let currentMode = 'encode'; // 'encode' or 'decode'
+
+        // --- Navigation Logic ---
+        function switchTab(mode) {
+            currentMode = mode;
+            headerTitle.textContent = mode === 'encode' ? 'Image to Base64' : 'Base64 to Image';
+            
+            // Toggle Views
+            views.encode.classList.toggle('hidden', mode !== 'encode');
+            views.encode.classList.toggle('flex', mode === 'encode');
+            views.decode.classList.toggle('hidden', mode !== 'decode');
+            views.decode.classList.toggle('flex', mode === 'decode');
+
+            // Toggle Tab Styles
+            tabs.encode.classList.toggle('text-gray-900', mode === 'encode');
+            tabs.encode.classList.toggle('text-gray-400', mode !== 'encode');
+            tabs.decode.classList.toggle('text-gray-900', mode === 'decode');
+            tabs.decode.classList.toggle('text-gray-400', mode !== 'decode');
+
+            // Toggle Indicators
+            indicators.encode.classList.toggle('hidden', mode !== 'encode');
+            indicators.decode.classList.toggle('hidden', mode === 'decode');
+        }
+
+        tabs.encode.addEventListener('click', () => switchTab('encode'));
+        tabs.decode.addEventListener('click', () => switchTab('decode'));
+
+        // --- Utility: Toast ---
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2500);
+        }
+
+        // --- Utility: Clear Data ---
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            if (currentMode === 'encode') {
+                fileInput.value = '';
+                encodePreview.src = '';
+                encodePreview.classList.add('hidden');
+                encodeOutput.value = '';
+                copyBtn.disabled = true;
+            } else {
+                decodeInput.value = '';
+                decodePreview.src = '';
+                decodePreview.classList.add('hidden');
+                decodePlaceholder.classList.remove('hidden');
+                downloadBtn.disabled = true;
+            }
+            showToast('Cleared successfully');
+        });
+
+        // --- Encode Logic (Img -> Base64) ---
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const base64Str = event.target.result;
+                encodePreview.src = base64Str;
+                encodePreview.classList.remove('hidden');
+                encodeOutput.value = base64Str;
+                copyBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(encodeOutput.value).then(() => {
+                showToast('Copied to clipboard');
+            }).catch(() => showToast('Failed to copy'));
+        });
+
+        // --- Decode Logic (Base64 -> Img) ---
+        decodeInput.addEventListener('input', (e) => {
+            let str = e.target.value.trim();
+            if (!str) {
+                decodePreview.classList.add('hidden');
+                decodePlaceholder.classList.remove('hidden');
+                downloadBtn.disabled = true;
+                return;
+            }
+
+            // Ensure proper data URI format if user pasted raw base64
+            if (!str.startsWith('data:image')) {
+                // Assuming PNG as fallback if raw string is provided
+                str = 'data:image/png;base64,' + str; 
+            }
+
+            decodePreview.src = str;
+            decodePreview.classList.remove('hidden');
+            decodePlaceholder.classList.add('hidden');
+            downloadBtn.disabled = false;
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.href = decodePreview.src;
+            link.download = `decoded-image-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Download started');
+        });
+
+    </script>
+</body>
+</html>

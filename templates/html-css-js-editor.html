@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1C1C1E">
+    <title>Code Studio Pro</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css">
+
+    <style>
+        :root {
+            --bg-base: #000000;
+            --bg-surface: #1C1C1E;
+            --text-main: #FFFFFF;
+            --text-muted: #8E8E93;
+            --border-light: #38383A;
+            --accent: #0A84FF;
+            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- TOP GRID: LIVE PREVIEW --- */
+        .preview-section {
+            height: 45%; /* Top portion */
+            background-color: #FFFFFF; /* Pure white for accurate preview */
+            position: relative;
+            border-bottom: 1px solid var(--border-light);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: transparent;
+        }
+
+        /* --- BOTTOM GRID: CODE EDITOR --- */
+        .editor-section {
+            height: 55%; /* Bottom portion */
+            display: flex;
+            flex-direction: column;
+            background-color: #212121; /* Matches Material Darker theme */
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid #111;
+            flex-shrink: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 14px 0;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-ui);
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn.active { color: var(--accent); }
+        
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background-color: var(--accent);
+            border-radius: 3px 3px 0 0;
+            transition: width 0.2s ease;
+        }
+
+        .tab-btn.active::after { width: 40px; }
+
+        /* CodeMirror Wrapper Override */
+        .cm-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .CodeMirror {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace !important;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Customizing CodeMirror scrollbars for mobile */
+        .CodeMirror-vscrollbar, .CodeMirror-hscrollbar {
+            display: none !important;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="preview-section">
+        <div class="preview-header">Live Preview</div>
+        <iframe id="preview-frame" class="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
+    </div>
+
+    <div class="editor-section">
+        <nav class="tab-bar">
+            <button class="tab-btn active" data-tab="html">HTML</button>
+            <button class="tab-btn" data-tab="css">CSS</button>
+            <button class="tab-btn" data-tab="js">JS</button>
+        </nav>
+        
+        <div class="cm-wrapper" id="cm-container">
+            </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+
+    <script>
+        // Default Content
+        const initialCode = {
+            html: `<div class="container">\n  <h1>Hello World</h1>\n  <p>Live CodeMirror Editor</p>\n</div>`,
+            css: `body {\n  font-family: -apple-system, sans-serif;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 100vh;\n  margin: 0;\n  background: #f0f2f5;\n}\n\nh1 {\n  color: #0A84FF;\n  font-size: 2.5rem;\n  margin: 0 0 10px 0;\n}\n\n.container {\n  text-align: center;\n  background: white;\n  padding: 30px;\n  border-radius: 16px;\n  box-shadow: 0 4px 20px rgba(0,0,0,0.08);\n}`,
+            js: `console.log("App initialized.");`
+        };
+
+        // Initialize CodeMirror Documents (stores undo history separately for each tab)
+        const docs = {
+            html: CodeMirror.Doc(initialCode.html, "xml"),
+            css: CodeMirror.Doc(initialCode.css, "css"),
+            js: CodeMirror.Doc(initialCode.js, "javascript")
+        };
+
+        // Initialize CodeMirror Instance
+        const editor = CodeMirror(document.getElementById("cm-container"), {
+            lineNumbers: true,
+            theme: "material-darker",
+            lineWrapping: true,
+            viewportMargin: Infinity,
+            indentUnit: 2
+        });
+
+        // Set initial active document
+        let currentTab = 'html';
+        editor.swapDoc(docs[currentTab]);
+
+        // DOM Elements
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const previewFrame = document.getElementById('preview-frame');
+
+        // Tab Switching Logic
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.dataset.tab;
+                
+                // Update UI
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Swap CodeMirror Document safely
+                currentTab = target;
+                editor.swapDoc(docs[currentTab]);
+                
+                // Keep focus on editor for seamless typing
+                editor.focus();
+            });
+        });
+
+        // Live Compiler
+        let timeout;
+        function compileCode() {
+            const html = docs.html.getValue();
+            const css = `<style>${docs.css.getValue()}</style>`;
+            const js = `<script>
+                try {
+                    ${docs.js.getValue()}
+                } catch(err) {
+                    console.error(err);
+                }
+            <\/script>`;
+
+            const sourceDoc = `
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                        ${css}
+                    </head>
+                    <body>
+                        ${html}
+                        ${js}
+                    </body>
+                </html>
+            `;
+
+            previewFrame.srcdoc = sourceDoc;
+        }
+
+        // Auto-run on change (Debounced for performance)
+        editor.on("change", () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(compileCode, 300); // Waits 300ms after you stop typing to update
+        });
+
+        // Initial compile
+        compileCode();
+    </script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Color Picker</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: #2e2e2e;
+  --text: #f5f5f5;
+  --sub: #8a8a8a;
+  --muted: #555;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', Consolas, monospace;
+}
+
+html, body {
+  height: 100%; background: var(--bg);
+  font-family: var(--sans); color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.app {
+  display: flex; flex-direction: column;
+  height: 100dvh; width: 100%;
+  background: var(--bg);
+}
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.topbar-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+.copy-hex-btn {
+  height: 32px; padding: 0 14px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface2); color: var(--text);
+  font-size: 13px; font-family: var(--mono);
+  font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: background 0.15s;
+  letter-spacing: 0.3px;
+}
+.copy-hex-btn:active { background: var(--border); transform: scale(0.97); }
+.copy-icon { font-size: 15px; opacity: 0.6; }
+
+/* Scroll area */
+.scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* Color preview */
+.preview-wrap {
+  padding: 20px 20px 0;
+}
+.preview {
+  width: 100%; height: 160px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.05s;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 14px 16px;
+}
+.preview-hex {
+  font-family: var(--mono); font-size: 20px; font-weight: 600;
+  letter-spacing: 1px; color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+}
+.preview-rgb {
+  font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.6);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  text-align: right;
+}
+
+/* Sliders section */
+.section { padding: 20px 20px 0; }
+.section-label {
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  letter-spacing: 0.8px; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.slider-row {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+}
+.slider-letter {
+  font-size: 12px; font-weight: 600; font-family: var(--mono);
+  width: 12px; flex-shrink: 0;
+}
+.slider-track {
+  flex: 1; height: 6px; border-radius: 3px;
+  position: relative; cursor: pointer;
+}
+.slider-track input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 100%; background: transparent;
+  position: absolute; top: 0; left: 0; margin: 0; padding: 0;
+  cursor: pointer;
+}
+.slider-track input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; border: 2px solid rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  cursor: pointer; position: relative; z-index: 2;
+}
+.slider-track input[type=range]::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; border: 2px solid rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+.slider-val {
+  font-size: 13px; font-family: var(--mono);
+  width: 30px; text-align: right; flex-shrink: 0; color: var(--sub);
+}
+
+/* Opacity slider track */
+.opacity-track {
+  background: repeating-conic-gradient(#555 0% 25%, #333 0% 50%) 0 0 / 10px 10px;
+  border-radius: 3px; overflow: hidden; position: relative;
+}
+.opacity-gradient {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 3px;
+}
+
+/* Swatches */
+.swatches-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr);
+  gap: 8px; padding: 20px 20px 0;
+}
+.swatch {
+  aspect-ratio: 1; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer; transition: transform 0.12s;
+  position: relative;
+}
+.swatch:active { transform: scale(0.88); }
+.swatch.active::after {
+  content: '';
+  position: absolute; inset: 3px;
+  border-radius: 6px;
+  border: 2px solid rgba(255,255,255,0.9);
+}
+
+/* Formats */
+.formats { padding: 20px 20px 0; display: flex; flex-direction: column; gap: 2px; }
+.format-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+.format-row:last-child { border-bottom: none; }
+.format-label { font-size: 13px; color: var(--sub); }
+.format-val {
+  font-size: 13px; font-family: var(--mono);
+  color: var(--text); cursor: pointer;
+  padding: 4px 10px; border-radius: 6px;
+  background: var(--surface2);
+  transition: background 0.15s;
+  letter-spacing: 0.3px;
+}
+.format-val:active { background: var(--border); }
+
+/* History */
+.history { padding: 20px 20px 32px; }
+.history-row {
+  display: flex; gap: 8px; overflow-x: auto;
+  scrollbar-width: none;
+}
+.history-row::-webkit-scrollbar { display: none; }
+.hist-swatch {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer; transition: transform 0.12s;
+}
+.hist-swatch:active { transform: scale(0.88); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--text); color: var(--bg);
+  font-size: 13px; font-weight: 600; padding: 10px 20px;
+  border-radius: 100px; opacity: 0;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none; white-space: nowrap; z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <span class="topbar-title">Color Picker</span>
+    <button class="copy-hex-btn" id="copyBtn" onclick="copyHex()">
+      <span class="copy-icon">⎘</span>
+      <span id="topHex">#FF5733</span>
+    </button>
+  </div>
+
+  <div class="scroll">
+
+    <div class="preview-wrap">
+      <div class="preview" id="preview">
+        <span class="preview-hex" id="previewHex">#FF5733</span>
+        <span class="preview-rgb" id="previewRgb">255 · 87 · 51</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">RGB</div>
+
+      <div class="slider-row">
+        <span class="slider-letter" style="color:#ff6b6b">R</span>
+        <div class="slider-track" id="trackR">
+          <input type="range" min="0" max="255" value="255" id="slR" oninput="onSlide()">
+        </div>
+        <span class="slider-val" id="valR">255</span>
+      </div>
+
+      <div class="slider-row">
+        <span class="slider-letter" style="color:#69db7c">G</span>
+        <div class="slider-track" id="trackG">
+          <input type="range" min="0" max="255" value="87" id="slG" oninput="onSlide()">
+        </div>
+        <span class="slider-val" id="valG">87</span>
+      </div>
+
+      <div class="slider-row">
+        <span class="slider-letter" style="color:#74c0fc">B</span>
+        <div class="slider-track" id="trackB">
+          <input type="range" min="0" max="255" value="51" id="slB" oninput="onSlide()">
+        </div>
+        <span class="slider-val" id="valB">51</span>
+      </div>
+
+      <div class="slider-row">
+        <span class="slider-letter" style="color:var(--sub)">A</span>
+        <div class="slider-track opacity-track" id="trackA">
+          <div class="opacity-gradient" id="opacityGrad"></div>
+          <input type="range" min="0" max="100" value="100" id="slA" oninput="onSlide()">
+        </div>
+        <span class="slider-val" id="valA">100</span>
+      </div>
+    </div>
+
+    <div class="swatches-grid" id="swatchGrid"></div>
+
+    <div class="formats">
+      <div class="section-label" style="padding:0 0 4px">Formats</div>
+      <div class="format-row">
+        <span class="format-label">HEX</span>
+        <span class="format-val" id="fmtHex" onclick="copyFmt('hex')">#FF5733</span>
+      </div>
+      <div class="format-row">
+        <span class="format-label">RGB</span>
+        <span class="format-val" id="fmtRgb" onclick="copyFmt('rgb')">rgb(255,87,51)</span>
+      </div>
+      <div class="format-row">
+        <span class="format-label">RGBA</span>
+        <span class="format-val" id="fmtRgba" onclick="copyFmt('rgba')">rgba(255,87,51,1)</span>
+      </div>
+      <div class="format-row">
+        <span class="format-label">HSL</span>
+        <span class="format-val" id="fmtHsl" onclick="copyFmt('hsl')">hsl(11,100%,60%)</span>
+      </div>
+    </div>
+
+    <div class="history">
+      <div class="section-label" style="margin-bottom:12px">Recent</div>
+      <div class="history-row" id="histRow"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SWATCHES = [
+  '#ff6b6b','#ff8c42','#ffd166','#c2f970',
+  '#06d6a0','#4ecdc4','#45b7d1','#6c5ce7',
+  '#fd79a8','#e17055','#fdcb6e','#00cec9',
+  '#0984e3','#74b9ff','#a29bfe','#dfe6e9',
+  '#2d3436','#636e72','#b2bec3','#ffffff',
+  '#d63031','#e84393','#6a0572','#0652dd',
+  '#1289a7','#009432','#f9ca24','#f0932b'
+];
+
+var r = 255, g = 87, b = 51, a = 100;
+var history = [];
+
+function hexByte(n) { return ('0'+n.toString(16)).slice(-2).toUpperCase(); }
+function toHex() { return '#'+hexByte(r)+hexByte(g)+hexByte(b); }
+function toRgb() { return 'rgb('+r+','+g+','+b+')'; }
+function toRgba() { return 'rgba('+r+','+g+','+b+','+(a/100).toFixed(2)+')'; }
+function toHsl() {
+  var rr=r/255,gg=g/255,bb=b/255;
+  var max=Math.max(rr,gg,bb),min=Math.min(rr,gg,bb);
+  var h,s,l=(max+min)/2;
+  if(max===min){h=s=0;}else{
+    var d=max-min; s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){case rr:h=(gg-bb)/d+(gg<bb?6:0);break;case gg:h=(bb-rr)/d+2;break;case bb:h=(rr-gg)/d+4;break;}
+    h/=6;
+  }
+  return 'hsl('+Math.round(h*360)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)';
+}
+
+function updateSliderTracks() {
+  document.getElementById('trackR').style.background =
+    'linear-gradient(to right, rgb(0,'+g+','+b+'), rgb(255,'+g+','+b+'))';
+  document.getElementById('trackG').style.background =
+    'linear-gradient(to right, rgb('+r+',0,'+b+'), rgb('+r+',255,'+b+'))';
+  document.getElementById('trackB').style.background =
+    'linear-gradient(to right, rgb('+r+','+g+',0), rgb('+r+','+g+',255))';
+  document.getElementById('opacityGrad').style.background =
+    'linear-gradient(to right, rgba('+r+','+g+','+b+',0), rgba('+r+','+g+','+b+',1))';
+}
+
+function updateUI() {
+  var hex = toHex();
+  var alphaCss = a/100;
+  var bgColor = 'rgba('+r+','+g+','+b+','+alphaCss+')';
+
+  document.getElementById('preview').style.background = bgColor;
+  document.getElementById('previewHex').textContent = hex;
+  document.getElementById('previewRgb').textContent = r+' · '+g+' · '+b;
+  document.getElementById('topHex').textContent = hex;
+
+  document.getElementById('valR').textContent = r;
+  document.getElementById('valG').textContent = g;
+  document.getElementById('valB').textContent = b;
+  document.getElementById('valA').textContent = a;
+
+  document.getElementById('fmtHex').textContent = hex;
+  document.getElementById('fmtRgb').textContent = toRgb();
+  document.getElementById('fmtRgba').textContent = toRgba();
+  document.getElementById('fmtHsl').textContent = toHsl();
+
+  updateSliderTracks();
+}
+
+function onSlide() {
+  r = parseInt(document.getElementById('slR').value);
+  g = parseInt(document.getElementById('slG').value);
+  b = parseInt(document.getElementById('slB').value);
+  a = parseInt(document.getElementById('slA').value);
+  updateUI();
+}
+
+function setColor(hex) {
+  var res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!res) return;
+  r = parseInt(res[1],16);
+  g = parseInt(res[2],16);
+  b = parseInt(res[3],16);
+  a = 100;
+  document.getElementById('slR').value = r;
+  document.getElementById('slG').value = g;
+  document.getElementById('slB').value = b;
+  document.getElementById('slA').value = a;
+  updateUI();
+  addHistory(hex);
+  updateSwatchActive(hex);
+}
+
+function addHistory(hex) {
+  hex = hex.toUpperCase();
+  history = history.filter(function(h){ return h !== hex; });
+  history.unshift(hex);
+  if(history.length > 16) history.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  var row = document.getElementById('histRow');
+  row.innerHTML = '';
+  history.forEach(function(hex) {
+    var el = document.createElement('div');
+    el.className = 'hist-swatch';
+    el.style.background = hex;
+    el.onclick = function(){ setColor(hex); };
+    row.appendChild(el);
+  });
+}
+
+function renderSwatches() {
+  var grid = document.getElementById('swatchGrid');
+  grid.innerHTML = '';
+  SWATCHES.forEach(function(hex) {
+    var el = document.createElement('div');
+    el.className = 'swatch';
+    el.style.background = hex;
+    el.dataset.hex = hex.toUpperCase();
+    el.onclick = function(){ setColor(hex); };
+    grid.appendChild(el);
+  });
+}
+
+function updateSwatchActive(hex) {
+  hex = hex.toUpperCase();
+  document.querySelectorAll('.swatch').forEach(function(s) {
+    s.classList.toggle('active', s.dataset.hex === hex);
+  });
+}
+
+function copyText(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text);
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1800);
+}
+
+function copyHex() {
+  copyText(toHex());
+  showToast('Copied ' + toHex());
+  addHistory(toHex());
+}
+
+function copyFmt(type) {
+  var val;
+  if(type==='hex') val=toHex();
+  else if(type==='rgb') val=toRgb();
+  else if(type==='rgba') val=toRgba();
+  else if(type==='hsl') val=toHsl();
+  copyText(val);
+  showToast('Copied');
+}
+
+renderSwatches();
+updateUI();
+addHistory('#FF5733');
+updateSwatchActive('#FF5733');
+</script>
+</body>
+</html>
