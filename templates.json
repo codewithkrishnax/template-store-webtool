@@ -7,7 +7,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/background-grid.html",
     "isPremium": false,
     "date": "2025-01-14",
-    "show": false
+    "show": true
   },
   {
     "appId": "code-to-image-v1",
@@ -26,7 +26,7 @@
     "icon": "https://cdn-icons-png.flaticon.com/128/4472/4472515.png",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/todo-pwa-v1.html",
     "date": "2025-12-20",
-    "show": false
+    "show": true
   },
   {
     "appId": "js-editor-v1",
@@ -45,7 +45,7 @@
     "icon": "https://cdn-icons-png.flaticon.com/128/14361/14361750.png",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/onepage-cv-ats-v1.html",
     "date": "2026-01-03",
-    "show": false
+    "show": true
   },
   {
     "appId": "json-master",
@@ -71,7 +71,7 @@
     "appId": "mockup-generator-v1",
     "appName": "Mobile Mockup Generator – 4K Export",
     "description": "Create realistic mobile device mockups and export high resolution 4K image instantly.",
-    "icon": "https://cdn-icons-png.flaticon.com/128/329/329435.png",
+    "icon": "https://cdn-icons-png.flaticon.com/512/11033/11033741.png",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/mockup-generator-v1.html",
     "date": "2026-02-27",
     "isPremium": true,
@@ -136,7 +136,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/markdown-editor-v1.html",
     "date": "2026-03-09",
     "isPremium": true,
-    "show": false
+    "show": true
   },
   {
     "appId": "text-editor-v1",
@@ -156,7 +156,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/dark-loopable-background-v1.html",
     "date": "2026-04-06",
     "isPremium": false,
-    "show": false
+    "show": true
   },
   {
     "appId": "premium-abstract-flowing-background-v1",
@@ -166,7 +166,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/premium-abstract-flowing-background-v1.html",
     "date": "2026-04-06",
     "isPremium": false,
-    "show": false
+    "show": true
   },
   {
     "appId": "threejs-ai-particle-background-v1",
@@ -176,7 +176,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/threejs-ai-particle-background-v1.html",
     "date": "2026-04-06",
     "isPremium": true,
-    "show": false
+    "show": true
   },
   {
     "appId": "threejs-particle-bg-60fps-v1",
@@ -186,7 +186,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/threejs-particle-bg-60fps-v1.html",
     "date": "2026-04-06",
     "isPremium": true,
-    "show": false
+    "show": true
   },
   {
     "appId": "hyperspeed-background-v1",
@@ -196,7 +196,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/hyperspeed-background-v1.html",
     "date": "2026-04-06",
     "isPremium": false,
-    "show": false
+    "show": true
   },
   {
     "appId": "particle-lines-background-v1",
@@ -206,7 +206,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/particle-lines-background-v1.html",
     "date": "2026-04-06",
     "isPremium": false,
-    "show": false
+    "show": true
   },
   {
     "appId": "color-export-studio-v1",
@@ -237,7 +237,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/js-editor-v2.html",
     "date": "2026-05-06",
     "isPremium": true,
-    "show": false
+    "show": true
   },
   {
     "appId": "json-tool-v1",
@@ -257,7 +257,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/markdown-editor-v2.html",
     "date": "2026-05-06",
     "isPremium": true,
-    "show": false
+    "show": true
   },
   {
     "appId": "qr-generator-v2",
@@ -267,7 +267,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/qr-generator-v2.html",
     "date": "2026-05-06",
     "isPremium": true,
-    "show": false
+    "show": true
   },
   {
     "appId": "text-editor-v2",
@@ -277,7 +277,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/text-editor-v2.html",
     "date": "2026-05-06",
     "isPremium": false,
-    "show": false
+    "show": true
   },
   {
     "appId": "image-tool-v1",
@@ -378,7 +378,7 @@
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/html-css-js-editor.html",
     "date": "2026-06-10",
     "isPremium": true,
-    "show": false
+    "show": true
   },
   {
     "appId": "color-palette-extractor",
