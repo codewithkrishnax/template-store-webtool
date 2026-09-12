@@ -306,7 +306,7 @@
     "appId": "whatsapp-formatter-pro-v1",
     "appName": "WhatsApp Formatter Pro",
     "description": "Format WhatsApp messages with bold, italic, code blocks, quotes, live preview, copy, and share support.",
-    "icon": "fa fa-whatsapp",
+    "icon": "fab fa-whatsapp",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/whatsapp-formatter-pro-v1.html",
     "date": "2026-07-12",
     "isPremium": true,
