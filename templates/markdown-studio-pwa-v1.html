@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1b1f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>MD Studio PWA</title>
+  <style>
+    :root {
+      /* Material Design 3 Dark Theme */
+      --md-sys-color-background: #1c1b1f;
+      --md-sys-color-on-background: #e6e1e5;
+      --md-sys-color-surface: #28262a;
+      --md-sys-color-on-surface: #e6e1e5;
+      --md-sys-color-surface-variant: #49454f;
+      --md-sys-color-on-surface-variant: #cac4d0;
+      --md-sys-color-primary: #d0bcff;
+      --md-sys-color-on-primary: #381e72;
+      --md-sys-color-primary-container: #4f378b;
+      --md-sys-color-on-primary-container: #eaddff;
+      --md-sys-color-surface-container: #1d1b20;
+      --md-sys-color-surface-container-high: #2b2930;
+      --md-sys-color-outline: #938f99;
+      --md-sys-color-error: #ffb4ab;
+    }
+
+    * { 
+      box-sizing: border-box; margin: 0; padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+      font-family: system-ui, -apple-system, Roboto, sans-serif; 
+    }
+
+    body {
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      width: 100vw;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top App Bar */
+    .app-bar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      z-index: 10;
+      background-color: var(--md-sys-color-background);
+    }
+
+    .app-bar .title {
+      font-size: 20px;
+      font-weight: 500;
+      flex: 1;
+      text-align: center;
+      user-select: none;
+    }
+
+    .icon-btn {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: transparent; border: none;
+      color: var(--md-sys-color-on-background);
+      display: flex; justify-content: center; align-items: center;
+      cursor: pointer; transition: background-color 0.2s ease;
+    }
+    .icon-btn:active { background-color: var(--md-sys-color-surface-variant); }
+    .icon-btn svg { fill: currentColor; width: 24px; height: 24px; }
+
+    /* Workspace */
+    .workspace {
+      flex: 1;
+      position: relative;
+      margin: 0 16px 16px 16px;
+      border-radius: 24px;
+      background-color: var(--md-sys-color-surface-container);
+      overflow: hidden;
+    }
+
+    /* Editor View */
+    #editor-view {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1), transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 2;
+    }
+    #editor-view.hidden {
+      opacity: 0; pointer-events: none; transform: scale(0.98); z-index: 1;
+    }
+
+    textarea {
+      flex: 1;
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--md-sys-color-on-surface);
+      font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+      font-size: 15px;
+      line-height: 1.5;
+      padding: 16px;
+      resize: none;
+      /* Padding bottom to ensure text isn't hidden behind the FAB */
+      padding-bottom: 80px; 
+    }
+
+    /* Formatting Toolbar */
+    .format-toolbar {
+      height: 56px;
+      background-color: var(--md-sys-color-surface-container-high);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+      overflow-x: auto;
+      white-space: nowrap;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .format-toolbar::-webkit-scrollbar { display: none; }
+    
+    .format-chip {
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-on-surface-variant);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .format-chip:active { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+
+    /* Preview View */
+    #preview-view {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: var(--md-sys-color-surface-container);
+      color: var(--md-sys-color-on-surface);
+      transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1), transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 1;
+      opacity: 0; transform: scale(1.02); pointer-events: none;
+      /* Padding bottom to ensure content clears the FAB */
+      padding-bottom: 96px; 
+    }
+    #preview-view.active {
+      opacity: 1; pointer-events: auto; transform: scale(1); z-index: 2;
+    }
+
+    /* Preview Typography Styles */
+    #preview-view h1 { font-size: 28px; margin-bottom: 16px; font-weight: 600; color: var(--md-sys-color-primary); }
+    #preview-view h2 { font-size: 22px; margin-top: 24px; margin-bottom: 12px; font-weight: 500; border-bottom: 1px solid var(--md-sys-color-surface-variant); padding-bottom: 8px; }
+    #preview-view h3 { font-size: 18px; margin-top: 16px; margin-bottom: 8px; }
+    #preview-view p { font-size: 16px; line-height: 1.6; margin-bottom: 16px; }
+    #preview-view a { color: var(--md-sys-color-primary); text-decoration: none; }
+    #preview-view ul, #preview-view ol { margin-bottom: 16px; padding-left: 24px; }
+    #preview-view li { margin-bottom: 8px; line-height: 1.5; }
+    #preview-view blockquote { border-left: 4px solid var(--md-sys-color-primary); margin: 0 0 16px 0; padding: 8px 16px; background: var(--md-sys-color-surface-container-high); border-radius: 0 8px 8px 0; font-style: italic; }
+    #preview-view code { background: var(--md-sys-color-surface-container-high); padding: 3px 6px; border-radius: 6px; font-family: monospace; font-size: 14px; color: var(--md-sys-color-error); }
+    #preview-view pre { background: var(--md-sys-color-surface-container-high); padding: 16px; border-radius: 12px; overflow-x: auto; margin-bottom: 16px; }
+    #preview-view pre code { background: transparent; padding: 0; color: var(--md-sys-color-on-surface); font-size: 14px; }
+    #preview-view img { max-width: 100%; border-radius: 12px; margin-bottom: 16px; }
+
+    /* FAB - Repositioned to clear the formatting toolbar */
+    .fab {
+      position: absolute; 
+      /* Pushed up to hover cleanly above the toolbar */
+      bottom: 88px; 
+      right: 24px;
+      width: 56px; height: 56px; border-radius: 16px;
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      border: none; cursor: pointer; transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 30;
+    }
+    .fab:active { transform: scale(0.92); }
+    .fab svg { width: 24px; height: 24px; fill: currentColor; transition: transform 0.3s; }
+    .fab.preview-mode svg { transform: rotate(180deg); opacity: 0; }
+    
+    /* Icon wrapper for smooth swap animation */
+    .fab-icon-wrapper { position: relative; width: 24px; height: 24px; }
+    .fab-icon-wrapper svg { position: absolute; top: 0; left: 0; transition: all 0.3s cubic-bezier(0.2, 0, 0, 1); }
+    #icon-edit { opacity: 0; transform: scale(0.5) rotate(-90deg); }
+    #icon-preview { opacity: 1; transform: scale(1) rotate(0); }
+    
+    .fab.preview-mode #icon-edit { opacity: 1; transform: scale(1) rotate(0); }
+    .fab.preview-mode #icon-preview { opacity: 0; transform: scale(0.5) rotate(90deg); }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed; bottom: 40px; left: 50%; transform: translate(-50%, 120px);
+      background-color: var(--md-sys-color-on-background);
+      color: var(--md-sys-color-background);
+      padding: 14px 24px; border-radius: 30px; font-size: 14px; font-weight: 500;
+      opacity: 0; transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 100; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-bar">
+    <button class="icon-btn" onclick="copyToClipboard()">
+      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+    </button>
+    <div class="title">MD Studio</div>
+    <button class="icon-btn" onclick="downloadMarkdown()">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    </button>
+  </div>
+
+  <div class="workspace">
+    <!-- Editor Stack -->
+    <div id="editor-view">
+      <textarea id="editor" placeholder="Start typing Markdown here...&#10;&#10;# Heading 1&#10;## Heading 2&#10;**Bold text**&#10;*Italic text*&#10;- List item"></textarea>
+      
+      <!-- Quick Format Toolbar -->
+      <div class="format-toolbar">
+        <button class="format-chip" onclick="insertSyntax('**', '**')">B</button>
+        <button class="format-chip" onclick="insertSyntax('*', '*')">I</button>
+        <button class="format-chip" onclick="insertSyntax('# ', '')">H1</button>
+        <button class="format-chip" onclick="insertSyntax('## ', '')">H2</button>
+        <button class="format-chip" onclick="insertSyntax('> ', '')">Quote</button>
+        <button class="format-chip" onclick="insertSyntax('- ', '')">List</button>
+        <button class="format-chip" onclick="insertSyntax('[', '](url)')">Link</button>
+        <!-- Added Image Button -->
+        <button class="format-chip" onclick="insertSyntax('![alt text](', ')')">Image</button>
+        <button class="format-chip" onclick="insertSyntax('`', '`')">Code</button>
+        <button class="format-chip" onclick="insertSyntax('```\n', '\n```')">Block</button>
+      </div>
+    </div>
+
+    <!-- Preview Stack -->
+    <div id="preview-view"></div>
+  </div>
+
+  <!-- Toggle FAB -->
+  <button class="fab" id="fab-toggle" onclick="toggleMode()">
+    <div class="fab-icon-wrapper">
+      <!-- Preview Eye Icon -->
+      <svg id="icon-preview" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      <!-- Edit Pencil Icon -->
+      <svg id="icon-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+    </div>
+  </button>
+
+  <div class="toast" id="toast">Copied to clipboard</div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview-view');
+    const editorView = document.getElementById('editor-view');
+    const fab = document.getElementById('fab-toggle');
+    let isPreviewMode = false;
+    let toastTimer;
+
+    // Custom Zero-Dependency Markdown Parser
+    function parseMarkdown(text) {
+      if (!text) return '<p style="color:var(--md-sys-color-on-surface-variant); text-align:center; margin-top:40px;">Nothing to preview</p>';
+      
+      let html = text;
+      
+      // 1. Protect Code Blocks
+      const codeBlocks = [];
+      html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
+        codeBlocks.push(code.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+        return `___CODEBLOCK_${codeBlocks.length - 1}___`;
+      });
+
+      // 2. Block Level Elements
+      html = html.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
+      html = html.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
+      html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+      html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+      html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+      html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+      html = html.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
+      
+      // 3. Lists (Basic ul)
+      html = html.replace(/^\s*\- (.*$)/gim, '<ul><li>$1</li></ul>');
+      html = html.replace(/<\/ul>\n<ul>/gim, ''); // Merge adjacent lists
+
+      // 4. Inline Elements
+      html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>'); // Bold
+      html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>'); // Italic
+      
+      // Note: Parse images BEFORE links so image links aren't broken by the standard link regex
+      html = html.replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />"); // Images
+      html = html.replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2' target='_blank'>$1</a>"); // Links
+      
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>'); // Inline Code
+
+      // 5. Line Breaks (Convert double newline to paragraph breaks, single to br)
+      html = html.replace(/\n\n/g, '<br><br>');
+      html = html.replace(/\n/g, '<br>');
+
+      // 6. Restore Code Blocks
+      html = html.replace(/___CODEBLOCK_(\d+)___/g, (match, index) => {
+        return `<pre><code>${codeBlocks[index]}</code></pre>`;
+      });
+
+      // Cleanup stray br tags around block elements
+      html = html.replace(/<br><br><h/g, '<h').replace(/<\/h[1-6]><br>/g, '</h$1>');
+
+      return html;
+    }
+
+    function toggleMode() {
+      isPreviewMode = !isPreviewMode;
+      
+      if (isPreviewMode) {
+        // Switch to Preview
+        preview.innerHTML = parseMarkdown(editor.value);
+        editorView.classList.add('hidden');
+        preview.classList.add('active');
+        fab.classList.add('preview-mode');
+      } else {
+        // Switch to Editor
+        preview.classList.remove('active');
+        editorView.classList.remove('hidden');
+        fab.classList.remove('preview-mode');
+        editor.focus();
+      }
+    }
+
+    // Helper for Toolbar buttons to inject syntax at cursor
+    function insertSyntax(prefix, suffix) {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const text = editor.value;
+      
+      const before = text.substring(0, start);
+      const selection = text.substring(start, end);
+      const after = text.substring(end, text.length);
+      
+      editor.value = before + prefix + selection + suffix + after;
+      
+      // Reset cursor position inside the syntax
+      editor.focus();
+      const newPos = start + prefix.length + selection.length;
+      editor.setSelectionRange(newPos, newPos);
+    }
+
+    function copyToClipboard() {
+      const textToCopy = isPreviewMode ? preview.innerText : editor.value;
+      if (!textToCopy.trim()) return showToast("Nothing to copy");
+      
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast(isPreviewMode ? "Copied preview text" : "Copied markdown source");
+      }).catch(() => {
+        showToast("Failed to copy");
+      });
+    }
+
+    function downloadMarkdown() {
+      if (!editor.value.trim()) return showToast("Document is empty");
+      
+      const blob = new Blob([editor.value], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `document_${Date.now()}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Saved to device");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Initial focus
+    window.onload = () => editor.focus();
+  </script>
+</body>
+</html>

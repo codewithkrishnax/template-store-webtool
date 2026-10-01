@@ -363,5 +363,45 @@
     "date": "2026-07-12",
     "isPremium": false,
     "show": true
+  },
+   {
+    "appId": "offline-image-compressor-v1",
+    "appName": "Image Compressor",
+    "description": "Compress multiple images directly in your browser with adjustable quality and batch saving.",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/offline-image-compressor-v1.html",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/offline-image-compressor-v1.png",
+    "date": "2026-10-01",
+    "isPremium": true,
+    "show": true
+  },
+  {
+     "appId": "zip-studio-v1",
+    "appName": "Zip Studio",
+    "description": "Create ZIP archives from multiple files directly in your browser using fast client-side compression.",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/zip-studio-v1.html",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/zip-studio-v1.png",
+    "date": "2026-10-01",
+    "isPremium": true,
+    "show": true
+  },
+  {
+     "appId": "markdown-studio-pwa-v1",
+    "appName": "Markdown Studio",
+    "description": "Write Markdown with quick formatting controls, live preview, copy, and download support.",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/markdown-studio-pwa-v1.html",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/markdown-studio-pwa-v1.png",
+    "date": "2026-10-01",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "watermark-studio-v1",
+    "appName": "Watermark Studio",
+    "description": "Add and position image watermarks with adjustable size, opacity, and nine placement options.",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/watermark-studio-v1.html",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/watermark-studio-v1.png",
+    "date": "2026-10-01",
+    "isPremium": true,
+    "show": true
   }
 ]

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1b1f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Watermark Studio PWA</title>
+  <style>
+    :root {
+      /* Material Design 3 Dark Theme Variables */
+      --md-sys-color-background: #1c1b1f;
+      --md-sys-color-on-background: #e6e1e5;
+      --md-sys-color-surface: #28262a;
+      --md-sys-color-on-surface: #e6e1e5;
+      --md-sys-color-surface-variant: #49454f;
+      --md-sys-color-on-surface-variant: #cac4d0;
+      --md-sys-color-primary: #d0bcff;
+      --md-sys-color-on-primary: #381e72;
+      --md-sys-color-primary-container: #4f378b;
+      --md-sys-color-on-primary-container: #eaddff;
+      --md-sys-color-surface-container: #1d1b20;
+      --md-sys-color-surface-container-high: #2b2930;
+      --md-sys-color-outline: #938f99;
+    }
+
+    * { 
+      box-sizing: border-box; margin: 0; padding: 0; 
+      user-select: none; -webkit-tap-highlight-color: transparent; 
+      font-family: system-ui, -apple-system, Roboto, sans-serif; 
+    }
+
+    body {
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      width: 100vw;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top App Bar */
+    .app-bar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      z-index: 10;
+    }
+
+    .app-bar .title {
+      font-size: 20px;
+      font-weight: 500;
+      flex: 1;
+      text-align: center;
+    }
+
+    .icon-btn {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: transparent; border: none;
+      color: var(--md-sys-color-on-background);
+      display: flex; justify-content: center; align-items: center;
+      cursor: pointer; transition: background-color 0.2s ease;
+    }
+    .icon-btn:active { background-color: var(--md-sys-color-surface-variant); }
+    .icon-btn svg { fill: currentColor; }
+
+    /* Workspace */
+    .workspace {
+      flex: 1;
+      margin: 0 16px 16px 16px;
+      border-radius: 28px;
+      position: relative;
+      display: flex; justify-content: center; align-items: center;
+      overflow: hidden;
+      /* Dark Checkerboard Pattern */
+      background-color: var(--md-sys-color-surface-container);
+      background-image: 
+        linear-gradient(45deg, var(--md-sys-color-surface-container-high) 25%, transparent 25%, transparent 75%, var(--md-sys-color-surface-container-high) 75%, var(--md-sys-color-surface-container-high)), 
+        linear-gradient(45deg, var(--md-sys-color-surface-container-high) 25%, transparent 25%, transparent 75%, var(--md-sys-color-surface-container-high) 75%, var(--md-sys-color-surface-container-high));
+      background-size: 24px 24px;
+      background-position: 0 0, 12px 12px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    .placeholder svg { width: 48px; height: 48px; fill: currentColor; opacity: 0.7; }
+
+    canvas {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain;
+      display: none;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      border-radius: 8px;
+    }
+
+    /* Controls Bottom Sheet */
+    .controls-sheet {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      background-color: var(--md-sys-color-surface-container-high);
+      border-radius: 28px 28px 0 0;
+      padding: 16px 24px 32px 24px;
+      display: flex; flex-direction: column; gap: 24px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 20;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+      will-change: transform;
+    }
+    .controls-sheet.active { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background-color: var(--md-sys-color-outline);
+      border-radius: 2px;
+      margin: 0 auto 8px auto;
+    }
+
+    /* Sliders */
+    .control-group { display: flex; flex-direction: column; gap: 12px; }
+    .control-header {
+      display: flex; justify-content: space-between;
+      font-size: 15px; font-weight: 500; color: var(--md-sys-color-on-surface-variant);
+    }
+    
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 20px; width: 20px; border-radius: 50%;
+      background: var(--md-sys-color-primary);
+      margin-top: -8px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%; height: 4px; background: var(--md-sys-color-surface-variant); border-radius: 2px;
+    }
+
+    /* Spatial 3x3 Grid */
+    .position-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      width: 100%; max-width: 220px; margin: 0 auto;
+    }
+    .pos-btn {
+      aspect-ratio: 1;
+      background-color: var(--md-sys-color-surface-variant);
+      border: none; border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      position: relative;
+    }
+    .pos-btn::after {
+      content: ''; position: absolute; width: 8px; height: 8px;
+      background-color: var(--md-sys-color-on-surface-variant);
+      border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      transition: background-color 0.2s;
+    }
+    .pos-btn.active {
+      background-color: var(--md-sys-color-primary);
+      transform: scale(0.92);
+    }
+    .pos-btn.active::after { background-color: var(--md-sys-color-on-primary); }
+
+    /* FABs */
+    .fab-container {
+      position: absolute; bottom: 32px; right: 24px;
+      display: flex; flex-direction: column; gap: 16px; align-items: center;
+      z-index: 30; transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      will-change: transform;
+    }
+
+    .fab {
+      width: 56px; height: 56px; border-radius: 16px;
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .fab:active { transform: scale(0.92); }
+    .fab svg { width: 24px; height: 24px; fill: currentColor; }
+    
+    .fab.secondary {
+      width: 48px; height: 48px; border-radius: 14px;
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-on-surface-variant);
+      display: none;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(208, 188, 255, 0.4); }
+      70% { box-shadow: 0 0 0 16px rgba(208, 188, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(208, 188, 255, 0); }
+    }
+    .pulse { animation: pulse-ring 2s infinite cubic-bezier(0.2, 0, 0, 1); }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed; bottom: 40px; left: 50%; transform: translate(-50%, 120px);
+      background-color: var(--md-sys-color-on-background);
+      color: var(--md-sys-color-background);
+      padding: 14px 24px; border-radius: 30px; font-size: 14px; font-weight: 500;
+      opacity: 0; transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 100; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    input[type=file] { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="app-bar">
+    <button class="icon-btn" id="btn-reset" style="visibility:hidden" onclick="resetAll()">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+    </button>
+    <div class="title">Watermark Studio</div>
+    <button class="icon-btn" id="btn-tune" style="visibility:hidden" onclick="toggleControls()">
+      <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+    </button>
+  </div>
+
+  <div class="workspace" id="workspace">
+    <div class="placeholder" id="placeholder">
+      <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+      <span>Select a base image</span>
+    </div>
+    <canvas id="main-canvas"></canvas>
+  </div>
+
+  <!-- Bottom Sheet Controls -->
+  <div class="controls-sheet" id="controls-sheet">
+    <div class="sheet-handle"></div>
+    
+    <div class="control-group">
+      <div class="control-header">
+        <span>Watermark Size</span>
+        <span id="val-size">25%</span>
+      </div>
+      <input type="range" id="inp-size" min="5" max="100" value="25" oninput="updateSettings()">
+    </div>
+
+    <div class="control-group">
+      <div class="control-header">
+        <span>Opacity</span>
+        <span id="val-opacity">80%</span>
+      </div>
+      <input type="range" id="inp-opacity" min="0" max="100" value="80" oninput="updateSettings()">
+    </div>
+
+    <div class="control-group" style="align-items: center; padding-top: 8px;">
+      <div class="position-grid" id="pos-grid">
+        <button class="pos-btn" data-pos="TL"></button>
+        <button class="pos-btn" data-pos="TC"></button>
+        <button class="pos-btn" data-pos="TR"></button>
+        <button class="pos-btn" data-pos="ML"></button>
+        <button class="pos-btn" data-pos="MC"></button>
+        <button class="pos-btn" data-pos="MR"></button>
+        <button class="pos-btn" data-pos="BL"></button>
+        <button class="pos-btn" data-pos="BC"></button>
+        <button class="pos-btn active" data-pos="BR"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fab-container" id="fab-container">
+    <button class="fab secondary" id="fab-watermark" onclick="document.getElementById('file-watermark').click()">
+      <svg viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l8.99 7 8.99-7-1.63-1.27-7.36 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/></svg>
+    </button>
+    <button class="fab pulse" id="fab-main" onclick="handleMainFab()">
+      <svg id="main-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-4.71z"/></svg>
+    </button>
+  </div>
+
+  <input type="file" id="file-base" accept="image/*">
+  <input type="file" id="file-watermark" accept="image/*">
+  
+  <div class="toast" id="toast">Image saved to device</div>
+
+  <script>
+    const fileBase = document.getElementById('file-base');
+    const fileWatermark = document.getElementById('file-watermark');
+    const canvas = document.getElementById('main-canvas');
+    const ctx = canvas.getContext('2d', { alpha: false }); // optimizes performance
+    const placeholder = document.getElementById('placeholder');
+    const fabMain = document.getElementById('fab-main');
+    const fabWm = document.getElementById('fab-watermark');
+    const btnReset = document.getElementById('btn-reset');
+    const btnTune = document.getElementById('btn-tune');
+    const controlsSheet = document.getElementById('controls-sheet');
+    const fabContainer = document.getElementById('fab-container');
+
+    const svgAddImage = '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-4.71z"/>';
+    const svgAddLayer = '<path d="M11.99 18.54l-7.37-5.73L3 14.07l8.99 7 8.99-7-1.63-1.27-7.36 5.74zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"/>';
+    const svgSave = '<path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>';
+
+    let settings = { size: 25, opacity: 80, position: 'BR' };
+    let baseImg = null, wmImg = null, isSheetOpen = false, toastTimer;
+
+    fileBase.addEventListener('change', (e) => handleFile(e, true));
+    fileWatermark.addEventListener('change', (e) => handleFile(e, false));
+
+    function handleFile(e, isBase) {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            if (isBase) baseImg = img; else wmImg = img;
+            updateUIState();
+            render();
+            if (!isBase && !isSheetOpen) setTimeout(toggleControls, 150);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    }
+
+    function handleMainFab() {
+      if (!baseImg) fileBase.click();
+      else if (!wmImg) fileWatermark.click();
+      else downloadImage();
+    }
+
+    function updateUIState() {
+      // Toggle Workspace elements
+      placeholder.style.display = baseImg ? 'none' : 'flex';
+      canvas.style.display = baseImg ? 'block' : 'none';
+      btnReset.style.visibility = baseImg ? 'visible' : 'hidden';
+      btnTune.style.visibility = wmImg ? 'visible' : 'hidden';
+
+      // Update FAB sequence
+      if (wmImg) {
+        fabMain.innerHTML = `<svg viewBox="0 0 24 24">${svgSave}</svg>`;
+        fabMain.classList.remove('pulse');
+        fabWm.style.display = 'flex';
+      } else if (baseImg) {
+        fabMain.innerHTML = `<svg viewBox="0 0 24 24">${svgAddLayer}</svg>`;
+        fabMain.classList.add('pulse');
+        fabWm.style.display = 'none';
+      } else {
+        fabMain.innerHTML = `<svg viewBox="0 0 24 24">${svgAddImage}</svg>`;
+        fabMain.classList.add('pulse');
+        fabWm.style.display = 'none';
+      }
+    }
+
+    function render() {
+      if (!baseImg) return;
+      
+      canvas.width = baseImg.width;
+      canvas.height = baseImg.height;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(baseImg, 0, 0);
+      
+      if (wmImg) {
+        // Calculate dimensions relative to the smaller edge to ensure safety
+        const refSize = Math.min(baseImg.width, baseImg.height);
+        const targetWmWidth = refSize * (settings.size / 100);
+        const scaleFactor = targetWmWidth / wmImg.width;
+        const targetWmHeight = wmImg.height * scaleFactor;
+        
+        const pad = refSize * 0.05; // 5% dynamic padding
+        let x = 0, y = 0;
+        
+        switch(settings.position) {
+          case 'TL': x = pad; y = pad; break;
+          case 'TC': x = (baseImg.width - targetWmWidth)/2; y = pad; break;
+          case 'TR': x = baseImg.width - targetWmWidth - pad; y = pad; break;
+          case 'ML': x = pad; y = (baseImg.height - targetWmHeight)/2; break;
+          case 'MC': x = (baseImg.width - targetWmWidth)/2; y = (baseImg.height - targetWmHeight)/2; break;
+          case 'MR': x = baseImg.width - targetWmWidth - pad; y = (baseImg.height - targetWmHeight)/2; break;
+          case 'BL': x = pad; y = baseImg.height - targetWmHeight - pad; break;
+          case 'BC': x = (baseImg.width - targetWmWidth)/2; y = baseImg.height - targetWmHeight - pad; break;
+          case 'BR': x = baseImg.width - targetWmWidth - pad; y = baseImg.height - targetWmHeight - pad; break;
+        }
+        
+        ctx.globalAlpha = settings.opacity / 100;
+        ctx.drawImage(wmImg, x, y, targetWmWidth, targetWmHeight);
+        ctx.globalAlpha = 1.0;
+      }
+    }
+
+    // Interactive spatial grid logic
+    document.querySelectorAll('.pos-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        settings.position = e.target.dataset.pos;
+        render();
+      });
+    });
+
+    function updateSettings() {
+      settings.size = document.getElementById('inp-size').value;
+      settings.opacity = document.getElementById('inp-opacity').value;
+      document.getElementById('val-size').textContent = settings.size + '%';
+      document.getElementById('val-opacity').textContent = settings.opacity + '%';
+      render();
+    }
+
+    function toggleControls() {
+      isSheetOpen = !isSheetOpen;
+      if (isSheetOpen) {
+        controlsSheet.classList.add('active');
+        // Push FAB up dynamically based on sheet height + padding
+        const offset = controlsSheet.offsetHeight + 16;
+        fabContainer.style.transform = `translateY(-${offset}px)`;
+      } else {
+        controlsSheet.classList.remove('active');
+        fabContainer.style.transform = 'translateY(0)';
+      }
+    }
+
+    // Dismiss sheet if user taps the workspace background
+    document.getElementById('workspace').addEventListener('click', (e) => {
+      if (isSheetOpen && e.target === document.getElementById('workspace')) toggleControls();
+    });
+
+    function downloadImage() {
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `watermarked_${Date.now()}.jpg`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Image exported to device');
+        if (isSheetOpen) toggleControls();
+      }, 'image/jpeg', 0.95); // High quality JPG export
+    }
+
+    function resetAll() {
+      baseImg = wmImg = null;
+      fileBase.value = fileWatermark.value = '';
+      if (isSheetOpen) toggleControls();
+      updateUIState();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Image Compressor</title>
+    
+    <!-- Google Material Symbols for native icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    
+    <!-- Tailwind CSS for rapid, modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0b57d0', // Material You primary blue
+                        primaryContainer: '#d3e3fd',
+                        onPrimaryContainer: '#041e49',
+                        surface: '#ffffff',
+                        surfaceVariant: '#f3f4f6',
+                        onSurface: '#1f2937',
+                        onSurfaceVariant: '#4b5563',
+                        outline: '#747775',
+                    },
+                    boxShadow: {
+                        'appbar': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                        'fab': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base styles for PWA mobile feel */
+        :root {
+            --safe-area-inset-top: env(safe-area-inset-top, 0px);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        body, html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Prevent body scroll, handle scroll in container */
+            background-color: theme('colors.surface');
+            color: theme('colors.onSurface');
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none; /* Prevent pull-to-refresh */
+        }
+
+        /* Hide scrollbar for a cleaner app-like UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Hardware accelerated transitions for 60fps */
+        .sheet-transition {
+            transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+            will-change: transform;
+        }
+        
+        .fade-transition {
+            transition: opacity 0.2s ease;
+            will-change: opacity;
+        }
+
+        .list-enter {
+            animation: slideUp 0.3s cubic-bezier(0.2, 0, 0, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Ripple effect base */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: black;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .ripple:active::after {
+            opacity: 0.1;
+            transition: 0s;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-[100dvh] w-full relative selection:bg-primaryContainer selection:text-primary">
+
+    <header class="w-full bg-surface text-onSurface z-20 flex-none shadow-appbar" style="padding-top: var(--safe-area-inset-top);">
+        <div class="h-16 px-4 flex items-center justify-between">
+            <h1 class="text-xl font-semibold tracking-tight">Compressor</h1>
+            <button id="btnSettings" class="p-2 rounded-full active:bg-surfaceVariant transition-colors" aria-label="Settings">
+                <span class="material-symbols-outlined text-onSurfaceVariant">tune</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="mainContent" class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-24 relative" style="padding-bottom: calc(6rem + var(--safe-area-inset-bottom));">
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center fade-transition">
+            <div class="w-48 h-48 mb-6 bg-surfaceVariant rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined text-6xl text-outline opacity-50" style="font-size: 80px;">imagesmode</span>
+            </div>
+            <h2 class="text-xl font-medium text-onSurface mb-2">No images selected</h2>
+            <p class="text-sm text-onSurfaceVariant max-w-[250px]">Tap the + button below to select images to compress offline.</p>
+        </div>
+
+        <!-- Image List -->
+        <div id="imageList" class="p-4 space-y-3 hidden flex-col">
+            <!-- List items will be injected here via JS -->
+        </div>
+    </main>
+
+    <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
+    
+    <div class="fixed bottom-6 right-6 z-20 flex flex-col items-end gap-4" style="bottom: calc(1.5rem + var(--safe-area-inset-bottom));">
+        <!-- Download All Button (Hidden initially) -->
+        <button id="btnDownloadAll" class="hidden items-center justify-center bg-surface text-primary font-medium px-4 py-3 rounded-2xl shadow-fab active:scale-95 transition-transform border border-surfaceVariant">
+            <span class="material-symbols-outlined mr-2">download</span>
+            Save All
+        </button>
+
+        <!-- Main FAB -->
+        <button id="btnAdd" class="w-14 h-14 bg-primary text-white rounded-2xl shadow-fab flex items-center justify-center active:scale-95 transition-transform ripple" aria-label="Add Images">
+            <span class="material-symbols-outlined text-3xl">add</span>
+        </button>
+    </div>
+
+    <div id="sheetBackdrop" class="fixed inset-0 bg-black/40 z-30 opacity-0 pointer-events-none fade-transition"></div>
+    
+    <div id="settingsSheet" class="fixed bottom-0 left-0 right-0 bg-surface rounded-t-3xl z-40 transform translate-y-full sheet-transition flex flex-col shadow-[0_-4px_20px_rgba(0,0,0,0.1)]" style="padding-bottom: var(--safe-area-inset-bottom);">
+        <div class="w-full flex justify-center pt-3 pb-2" id="sheetDragHandle">
+            <div class="w-10 h-1.5 bg-outline/30 rounded-full"></div>
+        </div>
+        <div class="px-6 pb-8 pt-2">
+            <h3 class="text-lg font-medium text-onSurface mb-6">Compression Quality</h3>
+            
+            <div class="flex items-center gap-4 mb-2">
+                <span class="material-symbols-outlined text-outline">image</span>
+                <input type="range" id="qualitySlider" min="10" max="100" value="70" class="w-full h-1 bg-surfaceVariant rounded-lg appearance-none cursor-pointer accent-primary">
+                <span id="qualityValue" class="text-sm font-medium text-onSurfaceVariant w-8 text-right">70%</span>
+            </div>
+            <p class="text-xs text-onSurfaceVariant mt-4">Lower quality results in smaller file size but reduces image clarity. 70% is recommended for a good balance.</p>
+            
+            <button id="btnCloseSettings" class="w-full mt-8 bg-surfaceVariant text-onSurface font-medium py-3 rounded-full active:bg-gray-200 transition-colors">
+                Done
+            </button>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed top-4 left-0 right-0 z-50 flex flex-col items-center pointer-events-none gap-2 px-4 transition-all" style="top: calc(1rem + var(--safe-area-inset-top));">
+        <!-- Toasts injected here -->
+    </div>
+
+    <script>
+        // --- State ---
+        let selectedFiles = []; // Array of objects { id, file, compressedBlob, status }
+        let compressionQuality = 0.7;
+        let isProcessing = false;
+
+        // --- DOM Elements ---
+        const fileInput = document.getElementById('fileInput');
+        const btnAdd = document.getElementById('btnAdd');
+        const emptyState = document.getElementById('emptyState');
+        const imageList = document.getElementById('imageList');
+        const btnDownloadAll = document.getElementById('btnDownloadAll');
+        
+        // Settings Sheet Elements
+        const btnSettings = document.getElementById('btnSettings');
+        const sheetBackdrop = document.getElementById('sheetBackdrop');
+        const settingsSheet = document.getElementById('settingsSheet');
+        const btnCloseSettings = document.getElementById('btnCloseSettings');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        
+        // --- Utility Functions ---
+        const formatBytes = (bytes, decimals = 2) => {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        };
+
+        const generateId = () => Math.random().toString(36).substring(2, 9);
+
+        // Toast Notification Function
+        const showToast = (message) => {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'bg-onSurface text-surface px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center transition-all duration-300 opacity-0 transform -translate-y-4 pointer-events-auto';
+            toast.innerHTML = `<span>${message}</span>`;
+            
+            toastContainer.appendChild(toast);
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', '-translate-y-4');
+                toast.classList.add('opacity-100', 'translate-y-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', '-translate-y-4');
+                setTimeout(() => toast.remove(), 300); // Wait for transition
+            }, 3000);
+        };
+
+        
+        // Settings Sheet Logic
+        const openSettings = () => {
+            sheetBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+            settingsSheet.classList.remove('translate-y-full');
+        };
+
+        const closeSettings = () => {
+            sheetBackdrop.classList.add('opacity-0', 'pointer-events-none');
+            settingsSheet.classList.add('translate-y-full');
+        };
+
+        btnSettings.addEventListener('click', openSettings);
+        btnCloseSettings.addEventListener('click', closeSettings);
+        sheetBackdrop.addEventListener('click', closeSettings);
+        
+        // Handle drag to close on bottom sheet (Simple implementation)
+        let touchStartY = 0;
+        const sheetDragHandle = document.getElementById('sheetDragHandle');
+        sheetDragHandle.addEventListener('touchstart', (e) => touchStartY = e.touches[0].clientY, {passive: true});
+        sheetDragHandle.addEventListener('touchmove', (e) => {
+            if (e.touches[0].clientY - touchStartY > 50) closeSettings();
+        }, {passive: true});
+
+        qualitySlider.addEventListener('input', (e) => {
+            qualityValue.textContent = `${e.target.value}%`;
+            compressionQuality = parseInt(e.target.value) / 100;
+        });
+
+        // FAB Click -> Open File Input
+        btnAdd.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        
+        // Core Compression Function using Canvas API
+        const compressImage = (file, quality) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const objectUrl = URL.createObjectURL(file);
+                
+                img.onload = () => {
+                    URL.revokeObjectURL(objectUrl); // Clean up
+                    
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Maintain aspect ratio, max width/height limits could be added here if needed
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    // Convert back to blob
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                resolve({
+                                    blob: blob,
+                                    width: img.width,
+                                    height: img.height
+                                });
+                            } else {
+                                reject(new Error('Canvas to Blob failed'));
+                            }
+                        },
+                        'image/jpeg', // Force JPEG for reliable compression
+                        quality
+                    );
+                };
+                
+                img.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    reject(new Error('Image load failed'));
+                };
+                
+                img.src = objectUrl;
+            });
+        };
+
+        
+        // UI Render Function for a single item
+        const renderItem = (item) => {
+            let el = document.getElementById(`item-${item.id}`);
+            const objectUrl = URL.createObjectURL(item.file);
+            
+            if (!el) {
+                // Create new list item
+                el = document.createElement('div');
+                el.id = `item-${item.id}`;
+                el.className = 'bg-surface border border-surfaceVariant rounded-2xl p-3 flex gap-4 items-center list-enter shadow-sm';
+                imageList.appendChild(el);
+            }
+
+            // Status visualization
+            let statusHtml = '';
+            if (item.status === 'processing') {
+                statusHtml = `
+                    <div class="flex-1 min-w-0">
+                        <div class="h-4 bg-surfaceVariant rounded w-3/4 mb-2 animate-pulse"></div>
+                        <div class="h-3 bg-surfaceVariant rounded w-1/2 animate-pulse"></div>
+                    </div>
+                    <div class="w-8 h-8 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-outline animate-spin">progress_activity</span>
+                    </div>
+                `;
+            } else if (item.status === 'done') {
+                const savings = ((item.file.size - item.compressedBlob.size) / item.file.size * 100).toFixed(0);
+                const isLarger = item.compressedBlob.size >= item.file.size;
+                const savingsText = isLarger ? `<span class="text-red-500">No reduction</span>` : `<span class="text-green-600 font-medium">-${savings}%</span>`;
+                
+                statusHtml = `
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-onSurface truncate">${item.file.name}</p>
+                        <p class="text-xs text-onSurfaceVariant mt-0.5">
+                            <span class="line-through opacity-70">${formatBytes(item.file.size)}</span> 
+                            <span class="material-symbols-outlined text-[12px] align-middle mx-0.5">arrow_forward</span> 
+                            <span class="text-primary font-medium">${formatBytes(item.compressedBlob.size)}</span>
+                        </p>
+                        <p class="text-xs mt-0.5">${savingsText}</p>
+                    </div>
+                    <button onclick="downloadSingle('${item.id}')" class="w-10 h-10 rounded-full bg-primaryContainer text-primary flex items-center justify-center active:scale-90 transition-transform">
+                        <span class="material-symbols-outlined">save_alt</span>
+                    </button>
+                `;
+            }
+
+            el.innerHTML = `
+                <div class="w-16 h-16 rounded-xl bg-surfaceVariant overflow-hidden flex-shrink-0">
+                    <img src="${objectUrl}" alt="thumbnail" class="w-full h-full object-cover">
+                </div>
+                ${statusHtml}
+            `;
+            
+            // Note: object URLs for thumbnails aren't immediately revoked here to keep them visible, 
+            // in a massive production app we'd manage these references carefully to avoid memory leaks.
+        };
+
+        const updateEmptyState = () => {
+            if (selectedFiles.length > 0) {
+                emptyState.classList.add('hidden');
+                imageList.classList.remove('hidden');
+                imageList.classList.add('flex');
+            }
+        };
+
+        const updateDownloadAllBtn = () => {
+            const allDone = selectedFiles.length > 0 && selectedFiles.every(f => f.status === 'done' || f.status === 'error');
+            if (allDone) {
+                btnDownloadAll.classList.remove('hidden');
+                btnDownloadAll.classList.add('flex');
+            } else {
+                btnDownloadAll.classList.add('hidden');
+                btnDownloadAll.classList.remove('flex');
+            }
+        };
+
+        // Process Queue sequentially to avoid freezing main thread
+        const processFiles = async () => {
+            isProcessing = true;
+            for (let i = 0; i < selectedFiles.length; i++) {
+                if (selectedFiles[i].status !== 'pending') continue;
+                
+                selectedFiles[i].status = 'processing';
+                renderItem(selectedFiles[i]);
+                
+                try {
+                    // Small delay to allow UI to render the 'processing' state before heavy canvas work
+                    await new Promise(r => setTimeout(r, 50)); 
+                    
+                    const result = await compressImage(selectedFiles[i].file, compressionQuality);
+                    selectedFiles[i].compressedBlob = result.blob;
+                    selectedFiles[i].status = 'done';
+                } catch (err) {
+                    console.error("Compression error:", err);
+                    selectedFiles[i].status = 'error';
+                }
+                
+                renderItem(selectedFiles[i]);
+                updateDownloadAllBtn();
+            }
+            isProcessing = false;
+            if(selectedFiles.length > 0) {
+                showToast("Compression complete");
+            }
+        };
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            const newItems = files.map(file => ({
+                id: generateId(),
+                file: file,
+                compressedBlob: null,
+                status: 'pending'
+            }));
+
+            selectedFiles = [...selectedFiles, ...newItems];
+            
+            updateEmptyState();
+            
+            // Initial render for new items
+            newItems.forEach(item => renderItem(item));
+            
+            // Start processing
+            if (!isProcessing) {
+                processFiles();
+            }
+            
+            // Reset input so the same files can be selected again if needed
+            fileInput.value = '';
+        });
+
+        
+        // Download a single file
+        window.downloadSingle = (id) => {
+            const item = selectedFiles.find(f => f.id === id);
+            if (!item || !item.compressedBlob) return;
+            
+            const originalName = item.file.name;
+            const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+            const newName = `${nameWithoutExt}_compressed.jpg`;
+            
+            triggerDownload(item.compressedBlob, newName);
+            showToast("Saved to device");
+        };
+
+        // Download all files (Sequential triggering)
+        btnDownloadAll.addEventListener('click', () => {
+            let delay = 0;
+            const completedItems = selectedFiles.filter(f => f.status === 'done');
+            
+            if(completedItems.length === 0) return;
+
+            completedItems.forEach(item => {
+                setTimeout(() => {
+                    const originalName = item.file.name;
+                    const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+                    triggerDownload(item.compressedBlob, `${nameWithoutExt}_compressed.jpg`);
+                }, delay);
+                delay += 300; // Stagger downloads slightly to ensure browser handles them
+            });
+            
+            showToast(`Saving ${completedItems.length} images...`);
+        });
+
+        const triggerDownload = (blob, filename) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        };
+    </script>
+</body>
+</html>

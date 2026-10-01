@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1b1f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Zip Studio PWA</title>
+  <!-- Using fflate for high-performance offline zip compression -->
+  <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+  <style>
+    :root {
+      /* Material Design 3 Dark Theme */
+      --md-sys-color-background: #1c1b1f;
+      --md-sys-color-on-background: #e6e1e5;
+      --md-sys-color-surface: #28262a;
+      --md-sys-color-on-surface: #e6e1e5;
+      --md-sys-color-surface-variant: #49454f;
+      --md-sys-color-on-surface-variant: #cac4d0;
+      --md-sys-color-primary: #d0bcff;
+      --md-sys-color-on-primary: #381e72;
+      --md-sys-color-primary-container: #4f378b;
+      --md-sys-color-on-primary-container: #eaddff;
+      --md-sys-color-surface-container: #1d1b20;
+      --md-sys-color-surface-container-high: #2b2930;
+      --md-sys-color-outline: #938f99;
+      --md-sys-color-error: #ffb4ab;
+    }
+
+    * { 
+      box-sizing: border-box; margin: 0; padding: 0; 
+      user-select: none; -webkit-tap-highlight-color: transparent; 
+      font-family: system-ui, -apple-system, Roboto, sans-serif; 
+    }
+
+    body {
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      width: 100vw;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top App Bar */
+    .app-bar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 10;
+      background-color: var(--md-sys-color-background);
+      flex-shrink: 0;
+    }
+
+    .app-bar .title { font-size: 20px; font-weight: 500; }
+    
+    .icon-btn {
+      width: 48px; height: 48px; margin-right: -12px;
+      border-radius: 50%; background: transparent; border: none;
+      color: var(--md-sys-color-on-background);
+      display: flex; justify-content: center; align-items: center;
+      cursor: pointer; transition: background-color 0.2s ease;
+    }
+    .icon-btn:active { background-color: var(--md-sys-color-surface-variant); }
+    .icon-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+    /* Main Workspace */
+    .workspace {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 16px 120px 16px; /* Padding bottom to clear bottom sheet */
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: none;
+    }
+    .workspace::-webkit-scrollbar { display: none; }
+
+    /* Empty State */
+    .empty-state {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      color: var(--md-sys-color-on-surface-variant);
+      transition: opacity 0.3s; pointer-events: none;
+    }
+    .empty-state.hidden { opacity: 0; }
+    .empty-state svg { width: 64px; height: 64px; fill: currentColor; opacity: 0.6; }
+    .empty-state .text { font-size: 16px; font-weight: 500; }
+
+    /* File List Items */
+    .file-item {
+      background-color: var(--md-sys-color-surface-container-high);
+      border-radius: 16px;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 16px;
+      animation: slideIn 0.3s cubic-bezier(0.2, 0, 0, 1) backwards;
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .file-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background-color: var(--md-sys-color-surface-variant);
+      color: var(--md-sys-color-on-surface-variant);
+      display: flex; justify-content: center; align-items: center;
+      flex-shrink: 0;
+    }
+    .file-icon svg { width: 24px; height: 24px; fill: currentColor; }
+
+    .file-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .file-name { font-size: 15px; font-weight: 500; color: var(--md-sys-color-on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-size { font-size: 13px; color: var(--md-sys-color-on-surface-variant); }
+
+    .delete-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: transparent; border: none;
+      color: var(--md-sys-color-error);
+      display: flex; justify-content: center; align-items: center;
+      cursor: pointer; flex-shrink: 0; transition: background-color 0.2s;
+    }
+    .delete-btn:active { background-color: rgba(255, 180, 171, 0.1); }
+    .delete-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+    /* Floating Action Button (FAB) */
+    .fab {
+      position: absolute; bottom: 32px; right: 24px;
+      width: 56px; height: 56px; border-radius: 16px;
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 20; will-change: transform;
+    }
+    .fab:active { transform: scale(0.92); }
+    .fab svg { width: 24px; height: 24px; fill: currentColor; }
+    .fab.elevated { transform: translateY(-88px); } /* Lifts when bottom sheet is active */
+    .fab.elevated:active { transform: translateY(-88px) scale(0.92); }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(208, 188, 255, 0.4); }
+      70% { box-shadow: 0 0 0 16px rgba(208, 188, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(208, 188, 255, 0); }
+    }
+    .pulse { animation: pulse-ring 2s infinite cubic-bezier(0.2, 0, 0, 1); }
+
+    /* Bottom Action Sheet */
+    .bottom-sheet {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      background-color: var(--md-sys-color-surface-container-high);
+      border-radius: 28px 28px 0 0;
+      padding: 20px 24px 32px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 15; box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+      will-change: transform;
+    }
+    .bottom-sheet.active { transform: translateY(0); }
+
+    .sheet-info { display: flex; flex-direction: column; gap: 4px; }
+    .sheet-title { font-size: 16px; font-weight: 500; color: var(--md-sys-color-on-surface); }
+    .sheet-subtitle { font-size: 13px; color: var(--md-sys-color-on-surface-variant); }
+
+    .btn-zip {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      border: none; border-radius: 16px;
+      padding: 12px 24px; font-size: 15px; font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; transition: transform 0.2s;
+    }
+    .btn-zip:active { transform: scale(0.95); }
+    .btn-zip svg { width: 20px; height: 20px; fill: currentColor; }
+    
+    /* Loading Spinner */
+    .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(56, 30, 114, 0.3); border-top-color: var(--md-sys-color-on-primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-zip.loading .spinner { display: block; }
+    .btn-zip.loading .btn-icon-svg { display: none; }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed; top: 24px; left: 50%; transform: translate(-50%, -100px);
+      background-color: var(--md-sys-color-on-background);
+      color: var(--md-sys-color-background);
+      padding: 14px 24px; border-radius: 30px; font-size: 14px; font-weight: 500;
+      opacity: 0; transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
+      z-index: 100; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="app-bar">
+    <div class="title">Zip Studio</div>
+    <button class="icon-btn" id="btn-clear" style="visibility:hidden" onclick="clearAll()">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+    </button>
+  </div>
+
+  <div class="workspace" id="file-list">
+    <!-- Files injected here -->
+  </div>
+
+  <div class="empty-state" id="empty-state">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 14h-3v3h-2v-3H8v-2h3v-3h2v3h3v2zm-3-7V3.5L18.5 9H13z"/></svg>
+    <span class="text">Tap + to add files</span>
+  </div>
+
+  <!-- Bottom Sheet -->
+  <div class="bottom-sheet" id="bottom-sheet">
+    <div class="sheet-info">
+      <div class="sheet-title" id="sheet-title">0 Files</div>
+      <div class="sheet-subtitle" id="sheet-subtitle">0.00 MB Total</div>
+    </div>
+    <button class="btn-zip" id="btn-zip" onclick="createZip()">
+      <svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 14H4V8h16v12zM16 9v2h-2v2h2v2h-2v2h-2v-2h2v-2h-2v-2h2V9h2z"/></svg>
+      <div class="spinner"></div>
+      <span id="btn-zip-text">Compress</span>
+    </button>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab pulse" id="fab-add" onclick="document.getElementById('file-input').click()">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+  </button>
+  
+  <input type="file" id="file-input" multiple>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const fileInput = document.getElementById('file-input');
+    const fileListEl = document.getElementById('file-list');
+    const emptyState = document.getElementById('empty-state');
+    const bottomSheet = document.getElementById('bottom-sheet');
+    const fabAdd = document.getElementById('fab-add');
+    const btnClear = document.getElementById('btn-clear');
+    const sheetTitle = document.getElementById('sheet-title');
+    const sheetSubtitle = document.getElementById('sheet-subtitle');
+    const btnZip = document.getElementById('btn-zip');
+    const btnZipText = document.getElementById('btn-zip-text');
+
+    let filesArray = [];
+    let toastTimer;
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        // Append new files, avoiding exact duplicates by name and size
+        Array.from(e.target.files).forEach(newFile => {
+          const exists = filesArray.some(f => f.name === newFile.name && f.size === newFile.size);
+          if (!exists) filesArray.push(newFile);
+        });
+        updateUI();
+      }
+      fileInput.value = ''; // Reset input
+    });
+
+    function removeFile(index) {
+      filesArray.splice(index, 1);
+      updateUI();
+    }
+
+    function clearAll() {
+      filesArray = [];
+      updateUI();
+    }
+
+    function formatSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function updateUI() {
+      // 1. Update List
+      fileListEl.innerHTML = '';
+      let totalSize = 0;
+      
+      filesArray.forEach((file, index) => {
+        totalSize += file.size;
+        const div = document.createElement('div');
+        div.className = 'file-item';
+        div.style.animationDelay = `${index * 0.05}s`;
+        div.innerHTML = `
+          <div class="file-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 14h-3v3h-2v-3H8v-2h3v-3h2v3h3v2zm-3-7V3.5L18.5 9H13z"/></svg>
+          </div>
+          <div class="file-info">
+            <span class="file-name">${file.name}</span>
+            <span class="file-size">${formatSize(file.size)}</span>
+          </div>
+          <button class="delete-btn" onclick="removeFile(${index})">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+          </button>
+        `;
+        fileListEl.appendChild(div);
+      });
+
+      // 2. Toggle States & Animations
+      if (filesArray.length > 0) {
+        emptyState.classList.add('hidden');
+        bottomSheet.classList.add('active');
+        fabAdd.classList.add('elevated');
+        fabAdd.classList.remove('pulse');
+        btnClear.style.visibility = 'visible';
+        
+        sheetTitle.textContent = `${filesArray.length} ${filesArray.length === 1 ? 'File' : 'Files'}`;
+        sheetSubtitle.textContent = `${formatSize(totalSize)} Total`;
+      } else {
+        emptyState.classList.remove('hidden');
+        bottomSheet.classList.remove('active');
+        fabAdd.classList.remove('elevated');
+        fabAdd.classList.add('pulse');
+        btnClear.style.visibility = 'hidden';
+      }
+    }
+
+    async function createZip() {
+      if (filesArray.length === 0) return;
+      
+      // Calculate total size to prevent mobile browser memory crashes
+      const totalSize = filesArray.reduce((acc, file) => acc + file.size, 0);
+      if (totalSize > 300 * 1024 * 1024) { // 300MB warning
+        showToast("Large files may crash mobile browsers");
+      }
+
+      setLoading(true);
+      
+      try {
+        // Read all files asynchronously into Uint8Array format required by fflate
+        const zipData = {};
+        for (const file of filesArray) {
+          const buffer = await file.arrayBuffer();
+          // Handle duplicate names inside zip by appending a timestamp if needed
+          let name = file.name;
+          while (zipData[name]) {
+            const parts = name.split('.');
+            const ext = parts.length > 1 ? `.${parts.pop()}` : '';
+            name = `${parts.join('.')}_${Math.floor(Math.random()*1000)}${ext}`;
+          }
+          zipData[name] = new Uint8Array(buffer);
+        }
+
+        // Perform offline compression (level 6 is default balance of speed/size)
+        fflate.zip(zipData, { level: 6 }, (err, zippedData) => {
+          if (err) {
+            setLoading(false);
+            showToast("Failed to create ZIP");
+            console.error(err);
+            return;
+          }
+          
+          // Trigger native download
+          const blob = new Blob([zippedData], { type: 'application/zip' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Archive_${Date.now()}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          setLoading(false);
+          showToast("ZIP exported successfully");
+        });
+
+      } catch (error) {
+        setLoading(false);
+        showToast("Error processing files");
+      }
+    }
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        btnZip.classList.add('loading');
+        btnZipText.textContent = 'Zipping...';
+        btnZip.style.pointerEvents = 'none';
+        fabAdd.style.pointerEvents = 'none';
+      } else {
+        btnZip.classList.remove('loading');
+        btnZipText.textContent = 'Compress';
+        btnZip.style.pointerEvents = 'auto';
+        fabAdd.style.pointerEvents = 'auto';
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>
