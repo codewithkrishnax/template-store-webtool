@@ -77,13 +77,13 @@
     "show": true
   },
   {
-    "appId": "youtube-thumbnail-grabber-v1",
-    "appName": "YouTube Thumbnail Grabber",
-    "description": "Extract and download all YouTube video thumbnail qualities instantly.",
-    "icon": "fa fa-youtube",
-    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/youtube-thumbnail-grabber-v1.png",
-    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/youtube-thumbnail-grabber-v1.html",
-    "date": "2026-03-10",
+    "appId": "youtube-thumbnail-viewer-v1",
+    "appName": "YouTube Thumbnail Viewer",
+    "description": "Instantly preview and open high-quality YouTube video thumbnails.",
+    "icon": "fa fa-image",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/youtube-thumbnail-viewer-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/youtube-thumbnail-viewer-v1.html",
+    "date": "2026-11-03",
     "isPremium": true,
     "show": true
   },
@@ -364,7 +364,7 @@
     "isPremium": false,
     "show": true
   },
-   {
+  {
     "appId": "offline-image-compressor-v1",
     "appName": "Image Compressor",
     "description": "Compress multiple images directly in your browser with adjustable quality and batch saving.",
@@ -375,9 +375,9 @@
     "show": true
   },
   {
-     "appId": "zip-studio-v1",
+    "appId": "zip-studio-v1",
     "appName": "Zip Studio",
-    "description": "Create ZIP archives from multiple files directly in your browser using fast client-side compression.",
+    "description": "Create, view, and extract ZIP archives directly in your browser using fast, 100% offline client-side processing.",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/zip-studio-v1.html",
     "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/zip-studio-v1.png",
     "date": "2026-10-01",
@@ -385,7 +385,7 @@
     "show": true
   },
   {
-     "appId": "markdown-studio-pwa-v1",
+    "appId": "markdown-studio-pwa-v1",
     "appName": "Markdown Studio",
     "description": "Write Markdown with quick formatting controls, live preview, copy, and download support.",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/markdown-studio-pwa-v1.html",
@@ -403,5 +403,38 @@
     "date": "2026-10-01",
     "isPremium": true,
     "show": true
-  }
+  },
+  {
+    "appId": "currency-converter-v1",
+    "appName": "Currency Converter",
+    "description": "Live currency conversion with real-time ECB exchange rates and a smart searchable interface.",
+    "icon": "fa fa-exchange-alt",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/currency-converter-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/currency-converter-v1.html",
+    "date": "2026-11-03",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "api-tester-v1",
+    "appName": "API Fetch Studio",
+    "description": "Mobile-first API tester with built-in CORS proxy for GET, POST, PUT, and DELETE requests.",
+    "icon": "fa fa-network-wired",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/api-tester-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/api-tester-v1.html",
+    "date": "2026-11-03",
+    "isPremium": true,
+    "show": true
+  },
+  {
+  "appId": "text-repeater-v1",
+  "appName": "Text Repeater",
+  "description": "Repeat any text, emoji, or string thousands of times instantly with formatting options.",
+  "icon": "fa fa-copy",
+  "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/text-repeater-v1.png",
+  "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/text-repeater-v1.html",
+  "date": "2026-11-03",
+  "isPremium": true,
+  "show": true
+}
 ]

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Text Repeater PWA</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  /* Light Theme */
+  --bg: #f4f4f8;
+  --surface: #ffffff;
+  --surface-variant: #f1f5f9;
+  --border: rgba(0,0,0,0.08);
+  --text: #18181b;
+  --sub: #71717a;
+  --muted: #a1a1aa;
+  --primary: #2563eb;
+  --primary-soft: #eff6ff;
+  --on-primary: #ffffff;
+  --success: #16a34a;
+  --error: #dc2626;
+  --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --radius: 20px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+[data-theme="dark"] {
+  /* Dark Theme */
+  --bg: #09090b;
+  --surface: #18181b;
+  --surface-variant: #27272a;
+  --border: rgba(255,255,255,0.1);
+  --text: #fafafa;
+  --sub: #a1a1aa;
+  --muted: #71717a;
+  --primary: #a78bfa;
+  --primary-soft: rgba(167, 139, 250, 0.15);
+  --on-primary: #1c192b;
+  --success: #4ade80;
+  --error: #f87171;
+  --shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+html, body { 
+  height: 100dvh; overflow: hidden; 
+  background: var(--bg); font-family: var(--sans); color: var(--text); 
+  transition: background 0.3s, color 0.3s;
+}
+
+.app {
+  display: flex; flex-direction: column; height: 100dvh;
+  max-width: 500px; margin: 0 auto; position: relative;
+}
+
+/* ── Header ── */
+.header { 
+  display: flex; align-items: center; justify-content: space-between; 
+  flex-shrink: 0; padding: 16px 20px; background: var(--bg); z-index: 10;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-icon {
+  width: 42px; height: 42px; border-radius: 12px; background: var(--primary);
+  display: flex; align-items: center; justify-content: center; color: var(--on-primary);
+  box-shadow: 0 4px 12px var(--primary-soft);
+}
+.header-icon svg { width: 22px; height: 22px; fill: currentColor; }
+.header-text h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.4px; }
+.header-text p { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+.theme-toggle {
+  width: 42px; height: 42px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); transition: transform 0.2s;
+  box-shadow: var(--shadow);
+}
+.theme-toggle:active { transform: scale(0.9); }
+.theme-toggle svg { width: 20px; height: 20px; fill: currentColor; }
+.icon-moon { display: none; }
+[data-theme="dark"] .icon-sun { display: none; }
+[data-theme="dark"] .icon-moon { display: block; }
+
+/* ── Workspace ── */
+.workspace {
+  flex: 1; display: flex; flex-direction: column; gap: 20px;
+  overflow-y: auto; scrollbar-width: none; 
+  padding: 8px 20px calc(100px + env(safe-area-inset-bottom));
+}
+.workspace::-webkit-scrollbar { display: none; }
+
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 16px;
+}
+.card-title { font-size: 15px; font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+
+/* ── Text Input ── */
+.text-area {
+  width: 100%; height: 100px; background: var(--surface-variant); border: 1px solid transparent; border-radius: 14px;
+  padding: 16px; font-family: var(--sans); font-size: 15px; color: var(--text); outline: none; resize: none; transition: border 0.2s;
+}
+.text-area:focus { border-color: var(--primary); background: var(--surface); }
+.text-area::placeholder { color: var(--muted); }
+
+/* ── Settings Row ── */
+.settings-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.number-input-wrap {
+  flex: 1; display: flex; align-items: center; background: var(--surface-variant); 
+  border-radius: 12px; padding: 0 16px; height: 50px; border: 1px solid transparent; transition: border 0.2s;
+}
+.number-input-wrap:focus-within { border-color: var(--primary); background: var(--surface); }
+.number-input-wrap label { font-size: 13px; font-weight: 700; color: var(--sub); margin-right: 12px; }
+.number-input {
+  flex: 1; width: 100%; background: transparent; border: none; outline: none;
+  font-family: var(--sans); font-size: 16px; font-weight: 700; color: var(--text);
+}
+.number-input::-webkit-outer-spin-button, .number-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ── Quick Chips ── */
+.quick-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+.quick-chips::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 8px 16px; border-radius: 10px; background: var(--surface-variant); color: var(--text);
+  font-size: 13px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.2s, background 0.2s; flex-shrink: 0;
+}
+.chip:active { transform: scale(0.95); background: var(--primary-soft); color: var(--primary); }
+
+/* ── Toggle ── */
+.toggle-wrap { 
+  display: flex; align-items: center; justify-content: space-between; 
+  background: var(--bg); padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); cursor: pointer;
+}
+.toggle-label { display: flex; flex-direction: column; gap: 2px; }
+.toggle-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.toggle-desc { font-size: 12px; font-weight: 500; color: var(--sub); }
+
+.toggle-switch {
+  width: 44px; height: 24px; background: var(--muted); border-radius: 12px;
+  position: relative; transition: background 0.3s; flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+  background: #fff; border-radius: 50%; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input[type="checkbox"] { display: none; }
+input[type="checkbox"]:checked + .toggle-switch { background: var(--primary); }
+input[type="checkbox"]:checked + .toggle-switch::after { transform: translateX(20px); }
+
+/* ── Output ── */
+.output-area {
+  width: 100%; height: 180px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+  padding: 16px; font-family: var(--sans); font-size: 14px; color: var(--text); outline: none; resize: none;
+}
+.output-area:read-only { color: var(--text); }
+
+.card-actions { display: flex; gap: 10px; }
+.btn-action {
+  flex: 1; height: 44px; border-radius: 12px; font-family: var(--sans); font-size: 14px; font-weight: 700;
+  display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; border: none; transition: transform 0.2s;
+}
+.btn-action:active { transform: scale(0.96); }
+.btn-action svg { width: 18px; height: 18px; fill: currentColor; }
+
+.btn-copy { background: var(--primary-soft); color: var(--primary); }
+.btn-clear { background: var(--surface-variant); color: var(--text); }
+
+/* ── Bottom Action Bar ── */
+.bottom-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+  background: var(--surface); border-top: 1px solid var(--border); z-index: 10;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.03); display: flex;
+}
+.btn-generate {
+  flex: 1; height: 56px; border-radius: 16px; background: var(--primary); color: var(--on-primary);
+  border: none; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer;
+  font-family: var(--sans); font-size: 16px; font-weight: 700; box-shadow: 0 4px 14px var(--primary-soft); transition: transform 0.2s;
+}
+.btn-generate:active { transform: scale(0.96); }
+.btn-generate svg { width: 22px; height: 22px; fill: currentColor; }
+
+/* Toast */
+.toast {
+  position: fixed; top: 80px; left: 50%; transform: translate(-50%, -20px);
+  background-color: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 700;
+  opacity: 0; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 100; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      </div>
+      <div class="header-text">
+        <h1>Text Repeater</h1>
+        <p>Offline String Generator</p>
+      </div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+      <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41.39.39 1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41.39.39 1.03.39 1.41 0l1.06-1.06z"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4C12.92 3.04 12.46 3 12 3zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7c.19 0 .38.02.57.04C11.02 6.55 10 8.65 10 11s1.02 4.45 2.57 5.96c-.19.02-.38.04-.57.04z"/></svg>
+    </button>
+  </div>
+
+  <div class="workspace">
+    
+    <!-- Config Card -->
+    <div class="card">
+      <div class="card-title">Configuration</div>
+      <textarea id="input-text" class="text-area" placeholder="Enter text to repeat..."></textarea>
+      
+      <div class="settings-row">
+        <div class="number-input-wrap">
+          <label for="rep-count">Limit</label>
+          <input type="number" id="rep-count" class="number-input" value="10" min="1" max="10000">
+        </div>
+      </div>
+
+      <div class="quick-chips">
+        <button class="chip" onclick="setCount(10)">x10</button>
+        <button class="chip" onclick="setCount(50)">x50</button>
+        <button class="chip" onclick="setCount(100)">x100</button>
+        <button class="chip" onclick="setCount(500)">x500</button>
+        <button class="chip" onclick="setCount(1000)">x1000</button>
+      </div>
+      
+      <label class="toggle-wrap">
+        <div class="toggle-label">
+          <span class="toggle-title">Add New Line</span>
+          <span class="toggle-desc">Break lines after each repeat</span>
+        </div>
+        <input type="checkbox" id="newline-toggle" checked>
+        <div class="toggle-switch"></div>
+      </label>
+    </div>
+
+    <!-- Output Card -->
+    <div class="card">
+      <div class="card-title">Result</div>
+      <textarea id="output-text" class="output-area" readonly placeholder="Output will appear here..."></textarea>
+      
+      <div class="card-actions">
+        <button class="btn-action btn-clear" onclick="clearOutput()">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+          Clear
+        </button>
+        <button class="btn-action btn-copy" onclick="copyOutput()">
+          <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          Copy Text
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Action Bar -->
+  <div class="bottom-bar">
+    <button class="btn-generate" onclick="generateText()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      <span>Repeat Text</span>
+    </button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// --- Theme Logic ---
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+}
+initTheme();
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const target = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', target);
+  localStorage.setItem('theme', target);
+}
+
+// --- App Logic ---
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function setCount(val) {
+  document.getElementById('rep-count').value = val;
+}
+
+function clearOutput() {
+  document.getElementById('input-text').value = '';
+  document.getElementById('output-text').value = '';
+  document.getElementById('input-text').focus();
+}
+
+async function copyOutput() {
+  const outText = document.getElementById('output-text').value;
+  if (!outText) return showToast("Nothing to copy!");
+  
+  try {
+    await navigator.clipboard.writeText(outText);
+    showToast("Copied to clipboard!");
+  } catch (err) {
+    showToast("Failed to copy text.");
+  }
+}
+
+function generateText() {
+  const text = document.getElementById('input-text').value;
+  let count = parseInt(document.getElementById('rep-count').value);
+  const addNewLine = document.getElementById('newline-toggle').checked;
+  const outputEl = document.getElementById('output-text');
+
+  if (!text) return showToast("Please enter some text");
+  if (isNaN(count) || count < 1) count = 1;
+  if (count > 100000) {
+    count = 100000; // Hard limit to prevent browser crash
+    document.getElementById('rep-count').value = count;
+    showToast("Limited to 100,000 for stability");
+  }
+
+  // Determine separator: newline or a single space
+  const separator = addNewLine ? '\n' : ' ';
+
+  // Highly optimized array generation for large strings
+  const result = Array.from({ length: count }, () => text).join(separator);
+  
+  outputEl.value = result;
+  
+  // Scroll to output
+  outputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  showToast("Generated successfully!");
+}
+</script>
+</body>
+</html>

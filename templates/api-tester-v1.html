@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>API Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Highlight.js for Code Formatting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #f4f4f8;
+  --surface: #ffffff;
+  --surface-variant: #f1f5f9;
+  --border: rgba(0,0,0,0.08);
+  --text: #18181b;
+  --sub: #71717a;
+  --muted: #a1a1aa;
+  --primary: #2563eb;
+  --primary-soft: #eff6ff;
+  --on-primary: #ffffff;
+  --success: #16a34a;
+  --error: #dc2626;
+  --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
+  --radius: 20px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.04);
+  --sheet-shadow: 0 -8px 24px rgba(0,0,0,0.12);
+  
+  /* Syntax Highlighting Colors - Light */
+  --hl-key: #2563eb;
+  --hl-string: #16a34a;
+  --hl-num: #ea580c;
+  --hl-bool: #db2777;
+}
+
+[data-theme="dark"] {
+  --bg: #09090b;
+  --surface: #18181b;
+  --surface-variant: #27272a;
+  --border: rgba(255,255,255,0.1);
+  --text: #fafafa;
+  --sub: #a1a1aa;
+  --muted: #71717a;
+  --primary: #a78bfa;
+  --primary-soft: rgba(167, 139, 250, 0.15);
+  --on-primary: #1c192b;
+  --success: #4ade80;
+  --error: #f87171;
+  --shadow: 0 4px 16px rgba(0,0,0,0.4);
+  --sheet-shadow: 0 -8px 30px rgba(0,0,0,0.8);
+  
+  /* Syntax Highlighting Colors - Dark */
+  --hl-key: #a78bfa;
+  --hl-string: #4ade80;
+  --hl-num: #fb923c;
+  --hl-bool: #f472b6;
+}
+
+html, body { 
+  height: 100dvh; overflow: hidden; 
+  background: var(--bg); font-family: var(--sans); color: var(--text); 
+  transition: background 0.3s, color 0.3s;
+}
+
+.app {
+  display: flex; flex-direction: column; height: 100dvh;
+  max-width: 500px; margin: 0 auto; position: relative;
+}
+
+/* ── Header ── */
+.header { 
+  display: flex; align-items: center; justify-content: space-between; 
+  flex-shrink: 0; padding: 16px 20px; background: var(--bg); z-index: 10;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-icon {
+  width: 42px; height: 42px; border-radius: 12px; background: var(--primary);
+  display: flex; align-items: center; justify-content: center; color: var(--on-primary);
+  box-shadow: 0 4px 12px var(--primary-soft);
+}
+.header-icon svg { width: 22px; height: 22px; fill: currentColor; }
+.header-text h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.4px; }
+.header-text p { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+.theme-toggle {
+  width: 42px; height: 42px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); transition: transform 0.2s;
+  box-shadow: var(--shadow);
+}
+.theme-toggle:active { transform: scale(0.9); }
+.theme-toggle svg { width: 20px; height: 20px; fill: currentColor; }
+.icon-moon { display: none; }
+[data-theme="dark"] .icon-sun { display: none; }
+[data-theme="dark"] .icon-moon { display: block; }
+
+/* ── Workspace ── */
+.workspace {
+  flex: 1; display: flex; flex-direction: column; gap: 20px;
+  overflow-y: auto; scrollbar-width: none; 
+  padding: 8px 20px calc(100px + env(safe-area-inset-bottom)); /* Clear bottom bar */
+}
+.workspace::-webkit-scrollbar { display: none; }
+
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 16px;
+}
+.card-title { font-size: 15px; font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+
+/* ── Endpoint Input ── */
+.input-group {
+  display: flex; background: var(--surface-variant); border-radius: 16px;
+  overflow: hidden; height: 54px; align-items: center; border: 1px solid transparent; transition: border 0.2s;
+}
+.input-group:focus-within { border-color: var(--primary); background: var(--surface); }
+.method-select {
+  background: transparent; border: none; outline: none; font-family: var(--sans); font-weight: 800;
+  font-size: 15px; color: var(--primary); padding: 0 16px; cursor: pointer; height: 100%; border-right: 1px solid var(--border);
+}
+.url-input {
+  flex: 1; background: transparent; border: none; outline: none; padding: 0 16px;
+  font-family: var(--sans); font-size: 15px; color: var(--text); font-weight: 500;
+}
+.url-input::placeholder { color: var(--muted); font-weight: 400; }
+
+/* ── Proxy Toggle ── */
+.toggle-wrap { 
+  display: flex; align-items: center; justify-content: space-between; 
+  background: var(--bg); padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); cursor: pointer;
+}
+.toggle-label { display: flex; flex-direction: column; gap: 2px; }
+.toggle-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.toggle-desc { font-size: 12px; font-weight: 500; color: var(--sub); }
+
+.toggle-switch {
+  width: 44px; height: 24px; background: var(--muted); border-radius: 12px;
+  position: relative; transition: background 0.3s; flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+  background: #fff; border-radius: 50%; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input[type="checkbox"] { display: none; }
+input[type="checkbox"]:checked + .toggle-switch { background: var(--primary); }
+input[type="checkbox"]:checked + .toggle-switch::after { transform: translateX(20px); }
+
+/* ── Headers Section ── */
+.headers-list { display: flex; flex-direction: column; gap: 10px; }
+.header-row { display: flex; gap: 8px; align-items: center; }
+.hdr-input {
+  flex: 1; background: var(--surface-variant); border: 1px solid transparent; border-radius: 12px;
+  padding: 14px 16px; font-family: var(--mono); font-size: 13px; color: var(--text); outline: none; width: 50%; transition: border 0.2s;
+}
+.hdr-input:focus { border-color: var(--primary); background: var(--surface); }
+.btn-remove-hdr {
+  width: 46px; height: 46px; border-radius: 12px; background: rgba(220, 38, 38, 0.1); flex-shrink: 0;
+  color: var(--error); border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s;
+}
+.btn-remove-hdr:active { transform: scale(0.9); }
+.btn-remove-hdr svg { width: 18px; height: 18px; fill: currentColor; }
+
+.btn-add-hdr {
+  background: var(--primary-soft); color: var(--primary); border: none; border-radius: 12px;
+  padding: 12px 16px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; 
+  display: flex; align-items: center; gap: 6px; align-self: flex-start; transition: transform 0.2s;
+}
+.btn-add-hdr:active { transform: scale(0.96); }
+.btn-add-hdr svg { width: 16px; height: 16px; fill: currentColor; }
+
+/* ── Body Section ── */
+.body-header-actions { display: flex; gap: 12px; align-items: center; }
+.btn-format {
+  background: transparent; border: none; color: var(--primary); font-family: var(--sans);
+  font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;
+}
+.btn-format:active { background: var(--primary-soft); }
+
+.body-area {
+  width: 100%; height: 140px; background: var(--surface-variant); border: 1px solid transparent; border-radius: 14px;
+  padding: 16px; font-family: var(--mono); font-size: 13px; color: var(--text); outline: none; resize: none; transition: border 0.2s;
+}
+.body-area:focus { border-color: var(--primary); background: var(--surface); }
+.body-area:disabled { opacity: 0.5; }
+
+/* ── Bottom Action Bar ── */
+.bottom-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+  background: var(--surface); border-top: 1px solid var(--border); z-index: 10;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.03); display: flex;
+}
+.btn-send {
+  flex: 1; height: 56px; border-radius: 16px; background: var(--primary); color: var(--on-primary);
+  border: none; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer;
+  font-family: var(--sans); font-size: 16px; font-weight: 700; box-shadow: 0 4px 14px var(--primary-soft); transition: transform 0.2s;
+}
+.btn-send:active { transform: scale(0.96); }
+.btn-send svg { width: 22px; height: 22px; fill: currentColor; }
+
+.btn-send .spinner { display: none; width: 22px; height: 22px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-send.loading span, .btn-send.loading svg:not(.spinner) { display: none; }
+.btn-send.loading .spinner { display: block; }
+
+/* ── Response Bottom Sheet ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 20; backdrop-filter: blur(2px); }
+.overlay.active { opacity: 1; pointer-events: auto; }
+
+.bottom-sheet {
+  position: fixed; bottom: 0; left: 0; width: 100%; height: 92dvh;
+  background: var(--surface); border-radius: 32px 32px 0 0; box-shadow: var(--sheet-shadow);
+  z-index: 30; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex; flex-direction: column;
+}
+.bottom-sheet.active { transform: translateY(0); }
+
+.sheet-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 16px; flex-shrink: 0; }
+.sheet-handle { width: 48px; height: 5px; background: var(--border); border-radius: 3px; margin: 0 auto; }
+.sheet-meta { display: flex; justify-content: space-between; align-items: center; }
+
+.status-group { display: flex; gap: 10px; align-items: center; }
+.status-badge { padding: 8px 14px; border-radius: 10px; font-size: 14px; font-weight: 800; }
+.status-200 { background: rgba(22, 163, 74, 0.15); color: var(--success); }
+.status-err { background: rgba(220, 38, 38, 0.15); color: var(--error); }
+.time-badge { font-size: 14px; font-weight: 700; color: var(--sub); }
+
+.sheet-actions { display: flex; gap: 8px; }
+.btn-sheet-act {
+  background: var(--surface-variant); color: var(--text); border: none; border-radius: 10px;
+  padding: 8px 14px; font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; transition: transform 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-sheet-act:active { transform: scale(0.92); }
+.btn-sheet-act.primary { background: var(--primary-soft); color: var(--primary); }
+.btn-sheet-act svg { width: 16px; height: 16px; fill: currentColor; }
+
+/* Code Editor Window */
+.sheet-content { flex: 1; padding: 16px; overflow-y: auto; background: var(--bg); }
+pre.code-wrap {
+  margin: 0; width: 100%; min-height: 100%; border-radius: 16px;
+  padding: 20px; overflow-x: auto; background: var(--surface);
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+code { font-family: var(--mono) !important; font-size: 13px; line-height: 1.6; }
+
+/* Custom Highlight.js mappings */
+.hljs { color: var(--text); background: transparent; }
+.hljs-attr { color: var(--hl-key); font-weight: 600; }
+.hljs-string { color: var(--hl-string); }
+.hljs-number { color: var(--hl-num); }
+.hljs-literal, .hljs-boolean { color: var(--hl-bool); font-weight: 600; }
+.hljs-keyword { color: var(--primary); font-weight: 600; }
+.hljs-comment { color: var(--muted); font-style: italic; }
+
+/* Toast */
+.toast {
+  position: fixed; top: 80px; left: 50%; transform: translate(-50%, -20px);
+  background-color: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 700;
+  opacity: 0; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 100; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      </div>
+      <div class="header-text">
+        <h1>API Studio</h1>
+        <p>Rest Fetch & Proxy</p>
+      </div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+      <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41.39.39 1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41.39.39 1.03.39 1.41 0l1.06-1.06z"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4C12.92 3.04 12.46 3 12 3zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7c.19 0 .38.02.57.04C11.02 6.55 10 8.65 10 11s1.02 4.45 2.57 5.96c-.19.02-.38.04-.57.04z"/></svg>
+    </button>
+  </div>
+
+  <div class="workspace">
+    
+    <!-- Endpoint Card -->
+    <div class="card">
+      <div class="card-title">Endpoint</div>
+      <div class="input-group">
+        <select id="method" class="method-select" onchange="toggleBody()">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="DELETE">DELETE</option>
+          <option value="PATCH">PATCH</option>
+        </select>
+        <input type="url" id="url" class="url-input" placeholder="https://api.example.com/data" value="https://jsonplaceholder.typicode.com/posts/1">
+      </div>
+      
+      <label class="toggle-wrap">
+        <div class="toggle-label">
+          <span class="toggle-title">CORS Proxy</span>
+          <span class="toggle-desc">Bypass browser blocks securely</span>
+        </div>
+        <input type="checkbox" id="use-proxy" checked>
+        <div class="toggle-switch"></div>
+      </label>
+    </div>
+
+    <!-- Headers Card -->
+    <div class="card">
+      <div class="card-title">Headers</div>
+      <div class="headers-list" id="headers-list">
+        <div class="header-row">
+          <input type="text" class="hdr-input hdr-key" placeholder="Key" value="Content-Type">
+          <input type="text" class="hdr-input hdr-val" placeholder="Value" value="application/json">
+          <button class="btn-remove-hdr" onclick="this.parentElement.remove()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></button>
+        </div>
+      </div>
+      <button class="btn-add-hdr" onclick="addHeaderRow()">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Add Header
+      </button>
+    </div>
+
+    <!-- Body Card -->
+    <div class="card" id="body-card" style="opacity: 0.5; pointer-events: none;">
+      <div class="card-title">
+        JSON Body
+        <div class="body-header-actions">
+          <button class="btn-format" onclick="formatBody()">Format</button>
+        </div>
+      </div>
+      <textarea id="req-body" class="body-area" placeholder="{\n  &quot;key&quot;: &quot;value&quot;\n}"></textarea>
+    </div>
+
+  </div>
+
+  <!-- Bottom Action Bar -->
+  <div class="bottom-bar">
+    <button class="btn-send" id="btn-send" onclick="sendRequest()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      <span>Send Request</span>
+      <div class="spinner"></div>
+    </button>
+  </div>
+
+</div>
+
+<!-- Overlay & Bottom Sheet for Response -->
+<div class="overlay" id="overlay" onclick="closeResponse()"></div>
+
+<div class="bottom-sheet" id="response-sheet">
+  <div class="sheet-header">
+    <div class="sheet-handle"></div>
+    <div class="sheet-meta">
+      <div class="status-group">
+        <div class="status-badge" id="res-status">200 OK</div>
+        <div class="time-badge" id="res-time">120ms</div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn-sheet-act primary" onclick="copyResponse()">
+          <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          Copy
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="sheet-content">
+    <pre class="code-wrap"><code id="res-body" class="language-json"></code></pre>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// --- Theme Logic ---
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+}
+initTheme();
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const target = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', target);
+  localStorage.setItem('theme', target);
+}
+
+// --- UI Logic ---
+function addHeaderRow() {
+  const list = document.getElementById('headers-list');
+  const row = document.createElement('div');
+  row.className = 'header-row';
+  row.innerHTML = `
+    <input type="text" class="hdr-input hdr-key" placeholder="Key">
+    <input type="text" class="hdr-input hdr-val" placeholder="Value">
+    <button class="btn-remove-hdr" onclick="this.parentElement.remove()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg></button>
+  `;
+  list.appendChild(row);
+}
+
+function toggleBody() {
+  const method = document.getElementById('method').value;
+  const bodyCard = document.getElementById('body-card');
+  if (method === 'GET' || method === 'HEAD') {
+    bodyCard.style.opacity = '0.5';
+    bodyCard.style.pointerEvents = 'none';
+  } else {
+    bodyCard.style.opacity = '1';
+    bodyCard.style.pointerEvents = 'auto';
+  }
+}
+
+function formatBody() {
+  const bodyArea = document.getElementById('req-body');
+  const val = bodyArea.value.trim();
+  if (!val) return;
+  try {
+    const parsed = JSON.parse(val);
+    bodyArea.value = JSON.stringify(parsed, null, 2);
+  } catch (err) {
+    showToast("Invalid JSON: Cannot format");
+  }
+}
+
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function closeResponse() {
+  document.getElementById('overlay').classList.remove('active');
+  document.getElementById('response-sheet').classList.remove('active');
+}
+
+let lastResponseRaw = "";
+
+async function copyResponse() {
+  try {
+    await navigator.clipboard.writeText(lastResponseRaw);
+    showToast("Copied to clipboard");
+  } catch (err) {
+    showToast("Failed to copy");
+  }
+}
+
+// --- Fetch API Engine ---
+async function sendRequest() {
+  const btn = document.getElementById('btn-send');
+  let rawUrl = document.getElementById('url').value.trim();
+  const method = document.getElementById('method').value;
+  const useProxy = document.getElementById('use-proxy').checked;
+  const reqBody = document.getElementById('req-body').value;
+
+  if (!rawUrl) return showToast("Please enter a URL");
+  if (!rawUrl.startsWith('http')) rawUrl = 'https://' + rawUrl;
+
+  btn.classList.add('loading');
+  
+  // 1. Build Headers
+  const headerKeys = document.querySelectorAll('.hdr-key');
+  const headerVals = document.querySelectorAll('.hdr-val');
+  let headers = {};
+  for(let i=0; i<headerKeys.length; i++){
+    const k = headerKeys[i].value.trim();
+    const v = headerVals[i].value.trim();
+    if(k && v) headers[k] = v;
+  }
+
+  // 2. Construct Options
+  let options = { method, headers };
+  if (method !== 'GET' && method !== 'HEAD' && reqBody) {
+    try {
+      if(headers['Content-Type']?.includes('json')) JSON.parse(reqBody); 
+      options.body = reqBody;
+    } catch(e) {
+      btn.classList.remove('loading');
+      return showToast("Invalid JSON Body format");
+    }
+  }
+
+  // 3. Strict CORSFix Proxy Logic
+  let fetchUrl = rawUrl;
+  if (useProxy) {
+    // Uses exactly corsfix.com as requested
+    fetchUrl = `https://proxy.corsfix.com/?${rawUrl}`;
+  }
+
+  // 4. Execute Fetch
+  const startTime = performance.now();
+  let response = null;
+  let fetchError = null;
+
+  try {
+    response = await fetch(fetchUrl, options);
+  } catch (err) {
+    fetchError = err;
+  }
+
+  const endTime = performance.now();
+  const timeTaken = Math.round(endTime - startTime);
+
+  btn.classList.remove('loading');
+
+  // 5. Handle Final Result
+  if (fetchError) {
+    displayResponse('ERR', 'Failed to fetch. CORS blocked or proxy offline.', timeTaken, fetchError.message, false);
+    return;
+  }
+
+  const status = response.status;
+  const statusText = response.statusText || 'OK';
+  
+  let resData = await response.text();
+  let isJson = false;
+  
+  // Format JSON beautifully if applicable
+  try {
+    const jsonParsed = JSON.parse(resData);
+    resData = JSON.stringify(jsonParsed, null, 2);
+    isJson = true;
+  } catch(e) {} 
+  
+  displayResponse(status, statusText, timeTaken, resData, isJson);
+}
+
+// 6. UI Rendering
+function displayResponse(status, statusText, time, data, isJson) {
+  lastResponseRaw = data;
+  
+  const badge = document.getElementById('res-status');
+  badge.textContent = `${status} ${statusText}`;
+  
+  if (status >= 200 && status < 300) {
+    badge.className = 'status-badge status-200';
+  } else {
+    badge.className = 'status-badge status-err';
+  }
+
+  document.getElementById('res-time').textContent = `${time}ms`;
+  
+  // Syntax Highlighting Engine
+  const codeEl = document.getElementById('res-body');
+  codeEl.textContent = data;
+  codeEl.removeAttribute('data-highlighted'); // Reset highlight.js state
+  
+  if(isJson) {
+    codeEl.className = 'language-json';
+  } else {
+    codeEl.className = 'language-xml'; // HTML/XML fallback
+  }
+  
+  hljs.highlightElement(codeEl);
+
+  // Slide up sheet
+  document.getElementById('overlay').classList.add('active');
+  document.getElementById('response-sheet').classList.add('active');
+}
+</script>
+</body>
+</html>
