@@ -72,6 +72,7 @@
     "description": "Generate and lookup hashes using MD5, SHA1, SHA224, SHA256, SHA384, and SHA512 instantly.",
     "icon": "fa fa-hashtag",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/hash-tools-crypto-suite.html",
+        "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/hash-tools-crypto-suite.png",
     "date": "2026-03-09",
     "isPremium": true,
     "show": true
@@ -83,9 +84,9 @@
     "icon": "fa fa-image",
     "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/youtube-thumbnail-viewer-v1.png",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/youtube-thumbnail-viewer-v1.html",
-    "date": "2026-11-03",
+    "date": "2026-10-03",
     "isPremium": true,
-    "show": true
+    "show": false
   },
   {
     "appId": "password-generator-v1",
