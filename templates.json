@@ -22,17 +22,6 @@
     "show": true
   },
   {
-    "appId": "json-master",
-    "appName": "JSON Master",
-    "description": "A powerful yet simple tool to format, validate, minify, and visualize JSON data. Ideal for developers working with APIs and configurations.",
-    "icon": "fa fa-code",
-    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/json-master.png",
-    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/json-master.html",
-    "date": "2025-12-26",
-    "show": true,
-    "isPremium": false
-  },
-  {
     "appId": "tic-tac-toe",
     "appName": "Tic Tac Toe",
     "description": "Classic two player tic tac toe game with clean interface.",
@@ -72,7 +61,7 @@
     "description": "Generate and lookup hashes using MD5, SHA1, SHA224, SHA256, SHA384, and SHA512 instantly.",
     "icon": "fa fa-hashtag",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/hash-tools-crypto-suite.html",
-        "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/hash-tools-crypto-suite.png",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/hash-tools-crypto-suite.png",
     "date": "2026-03-09",
     "isPremium": true,
     "show": true
@@ -413,7 +402,7 @@
     "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/currency-converter-v1.png",
     "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/currency-converter-v1.html",
     "date": "2026-11-03",
-    "isPremium": true,
+    "isPremium": false,
     "show": true
   },
   {
@@ -428,14 +417,58 @@
     "show": true
   },
   {
-  "appId": "text-repeater-v1",
-  "appName": "Text Repeater",
-  "description": "Repeat any text, emoji, or string thousands of times instantly with formatting options.",
-  "icon": "fa fa-copy",
-  "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/text-repeater-v1.png",
-  "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/text-repeater-v1.html",
-  "date": "2026-11-03",
-  "isPremium": true,
-  "show": true
-}
+    "appId": "text-repeater-v1",
+    "appName": "Text Repeater",
+    "description": "Repeat any text, emoji, or string thousands of times instantly with formatting options.",
+    "icon": "fa fa-copy",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/text-repeater-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/text-repeater-v1.html",
+    "date": "2026-11-03",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "github-repo-analyzer-v1",
+    "appName": "GitHub Repo Analyzer",
+    "description": "Analyze any GitHub repository instantly to view detailed metrics, stats, and language breakdowns.",
+    "icon": "fa fa-chart-pie",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/github-repo-analyzer-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/github-repo-analyzer-v1.html",
+    "date": "2026-11-04",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "github-user-analyzer-v1",
+    "appName": "GitHub User Analyzer",
+    "description": "Analyze any GitHub user to visualize their programming languages, top repositories, and total stars earned.",
+    "icon": "fa fa-user-astronaut",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/github-user-analyzer-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/github-user-analyzer-v1.html",
+    "date": "2026-11-04",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "css-gradient-studio-v1",
+    "appName": "Gradient Studio",
+    "description": "Design modern, beautiful CSS gradients instantly. Customize colors, angles, and types with a mobile-friendly UI.",
+    "icon": "fa fa-palette",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/css-gradient-studio-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/css-gradient-studio-v1.html",
+    "date": "2026-11-04",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "mockup-forge-v1",
+    "appName": "Mockup Forge 3D",
+    "description": "Create pixel-perfect, fully adjustable 3D isometric app mockups. Full XYZ rotation, notch control, and image panning—100% offline.",
+    "icon": "fa fa-cube",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/mockup-forge-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/mockup-forge-v1.html",
+    "date": "2026-11-04",
+    "isPremium": true,
+    "show": true
+  }
 ]

@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Mockup Forge 3D Pro</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :root {
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --surface-variant: #334155;
+        --border: #475569;
+        --text: #f8fafc;
+        --sub: #cbd5e1;
+        --primary: #3b82f6;
+        --primary-soft: rgba(59, 130, 246, 0.2);
+        --on-primary: #ffffff;
+        --sans: "Plus Jakarta Sans", system-ui, sans-serif;
+        --radius: 20px;
+        --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      html,
+      body {
+        height: 100dvh;
+        overflow: hidden;
+        background: var(--bg);
+        font-family: var(--sans);
+        color: var(--text);
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      /* ── Top Canvas Preview (No Header) ── */
+      .preview-area {
+        position: relative;
+        width: 100%;
+        height: 48dvh;
+        background: #000;
+        flex-shrink: 0;
+        box-shadow: var(--shadow);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      canvas#mockup-canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
+      /* Floating Preview Controls */
+      .float-btn {
+        position: absolute;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        cursor: pointer;
+        transition: transform 0.2s;
+        z-index: 20;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      .float-btn:active {
+        transform: scale(0.9);
+      }
+      .float-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+      .btn-upload-top {
+        top: 16px;
+        left: 16px;
+      }
+      .btn-reset-rot {
+        top: 16px;
+        right: 70px;
+      }
+      .btn-random-bg {
+        top: 16px;
+        right: 16px;
+      }
+
+      /* ── Workspace / Controls Panel ── */
+      .workspace {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+        scrollbar-width: none;
+        background: var(--bg);
+        padding: 20px 20px calc(100px + env(safe-area-inset-bottom));
+      }
+      .workspace::-webkit-scrollbar {
+        display: none;
+      }
+
+      .card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .card-header {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+        margin-bottom: -2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-header svg {
+        width: 18px;
+        height: 18px;
+        fill: var(--primary);
+      }
+
+      /* Sliders */
+      .slider-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .slider-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .slider-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--sub);
+      }
+      .slider-val {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--primary);
+        background: var(--primary-soft);
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-family: monospace;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+        height: 32px;
+        margin: 0;
+        cursor: pointer;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 8px;
+        background: var(--surface-variant);
+        border-radius: 4px;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 28px;
+        width: 28px;
+        border-radius: 50%;
+        background: var(--text);
+        margin-top: -10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        border: 3px solid var(--primary);
+        transition: transform 0.1s;
+      }
+      input[type="range"]:active::-webkit-slider-thumb {
+        transform: scale(1.15);
+        background: var(--primary);
+      }
+
+      /* Toggle Switch */
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface-variant);
+        padding: 12px 16px;
+        border-radius: 14px;
+        cursor: pointer;
+      }
+      .toggle-row-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .toggle-switch {
+        width: 46px;
+        height: 26px;
+        background: #64748b;
+        border-radius: 13px;
+        position: relative;
+        transition: background 0.25s;
+        flex-shrink: 0;
+      }
+      .toggle-switch::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      input[type="checkbox"] {
+        display: none;
+      }
+      input[type="checkbox"]:checked + .toggle-switch {
+        background: var(--primary);
+      }
+      input[type="checkbox"]:checked + .toggle-switch::after {
+        transform: translateX(20px);
+      }
+
+      .notch-controls-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        transition: opacity 0.2s;
+      }
+      .notch-controls-wrap.disabled {
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      /* Color Pickers */
+      .color-row {
+        display: flex;
+        gap: 12px;
+      }
+      .color-picker-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface-variant);
+        border-radius: 14px;
+        padding: 8px 16px;
+      }
+      .color-picker-wrap span {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--sub);
+      }
+      input[type="color"] {
+        -webkit-appearance: none;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        background: none;
+        padding: 0;
+        overflow: hidden;
+      }
+      input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      input[type="color"]::-webkit-color-swatch {
+        border: 2px solid var(--border);
+        border-radius: 8px;
+      }
+
+      /* Small Reset Button in Card Header */
+      .btn-mini-reset {
+        background: var(--primary-soft);
+        color: var(--primary);
+        border: none;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-mini-reset:active {
+        transform: scale(0.95);
+      }
+
+      /* ── Bottom Action Bar ── */
+      .bottom-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+        background: rgba(30, 41, 59, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border);
+        z-index: 20;
+        display: flex;
+      }
+      .btn-export {
+        flex: 1;
+        height: 56px;
+        border-radius: 16px;
+        background: var(--primary);
+        color: var(--on-primary);
+        border: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-family: var(--sans);
+        font-size: 16px;
+        font-weight: 800;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        transition: transform 0.2s;
+      }
+      .btn-export:active {
+        transform: scale(0.96);
+      }
+      .btn-export svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+      }
+
+      /* Empty State Overlay */
+      .empty-state {
+        position: absolute;
+        inset: 0;
+        background: var(--bg);
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        transition: opacity 0.3s;
+      }
+      .empty-state.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--surface);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        box-shadow: var(--shadow);
+      }
+      .empty-icon svg {
+        width: 40px;
+        height: 40px;
+        fill: currentColor;
+      }
+      .empty-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text);
+      }
+      .empty-sub {
+        font-size: 15px;
+        color: var(--sub);
+        text-align: center;
+        max-width: 280px;
+        line-height: 1.5;
+      }
+      .btn-start {
+        margin-top: 12px;
+        padding: 16px 32px;
+        border-radius: 16px;
+        background: var(--primary);
+        color: var(--on-primary);
+        font-family: var(--sans);
+        font-size: 16px;
+        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 20px var(--primary-soft);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: transform 0.2s;
+      }
+      .btn-start:active {
+        transform: scale(0.95);
+      }
+      .btn-start svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translate(-50%, -20px);
+        background-color: var(--text);
+        color: var(--bg);
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 700;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        z-index: 100;
+        pointer-events: none;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+      .toast.show {
+        transform: translate(-50%, 20px);
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- Empty State -->
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+            />
+          </svg>
+        </div>
+        <div class="empty-title">Mockup Forge 3D</div>
+        <div class="empty-sub">
+          Import a screenshot to instantly generate high-res 3D & flat mockups.
+        </div>
+        <button
+          class="btn-start"
+          onclick="document.getElementById('image-input').click()"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
+          </svg>
+          Choose Image
+        </button>
+      </div>
+
+      <input
+        type="file"
+        id="image-input"
+        accept="image/png, image/jpeg, image/webp"
+      />
+
+      <!-- Main App (Visible after upload) -->
+      <div class="preview-area">
+        <canvas id="mockup-canvas"></canvas>
+        <button
+          class="float-btn btn-upload-top"
+          onclick="document.getElementById('image-input').click()"
+          title="Change Image"
+        >
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+            />
+          </svg>
+        </button>
+        <button
+          class="float-btn btn-reset-rot"
+          onclick="resetOrientation()"
+          title="Reset 3D View"
+        >
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
+            />
+          </svg>
+        </button>
+        <button
+          class="float-btn btn-random-bg"
+          onclick="randomizeBg()"
+          title="Random Gradient"
+        >
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9c-.83 0-1.5-.67-1.5-1.5S6.67 6 7.5 6s1.5.67 1.5 1.5S8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.83 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div class="workspace">
+        <!-- 3D Transform Controls (Default 0, 0, 0) -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15zM5 15.91l6 3.38v-6.71L5 9.19v6.72zm14 0v-6.72l-6 3.39v6.71l6-3.38z"
+                />
+              </svg>
+              3D Orientation
+            </div>
+            <button class="btn-mini-reset" onclick="resetOrientation()">
+              Reset 0°
+            </button>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Scale</span
+              ><span class="slider-val" id="v-scale">85%</span>
+            </div>
+            <input
+              type="range"
+              id="c-scale"
+              min="30"
+              max="150"
+              value="85"
+              oninput="updateVal('scale')"
+            />
+          </div>
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Pitch (X Rotation)</span
+              ><span class="slider-val" id="v-rotX">0°</span>
+            </div>
+            <input
+              type="range"
+              id="c-rotX"
+              min="-60"
+              max="60"
+              value="0"
+              oninput="updateVal('rotX')"
+            />
+          </div>
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Yaw (Y Rotation)</span
+              ><span class="slider-val" id="v-rotY">0°</span>
+            </div>
+            <input
+              type="range"
+              id="c-rotY"
+              min="-60"
+              max="60"
+              value="0"
+              oninput="updateVal('rotY')"
+            />
+          </div>
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Roll (Z Rotation)</span
+              ><span class="slider-val" id="v-rotZ">0°</span>
+            </div>
+            <input
+              type="range"
+              id="c-rotZ"
+              min="-180"
+              max="180"
+              value="0"
+              oninput="updateVal('rotZ')"
+            />
+          </div>
+        </div>
+
+        <!-- Phone Hardware & Radius Controls -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"
+                />
+              </svg>
+              Frame & Corner Radius
+            </div>
+          </div>
+
+          <div class="color-row">
+            <div class="color-picker-wrap">
+              <span>Body Color</span>
+              <input
+                type="color"
+                id="c-bodyColor"
+                value="#0f172a"
+                oninput="renderMockup()"
+              />
+            </div>
+            <div class="color-picker-wrap">
+              <span>Notch Color</span>
+              <input
+                type="color"
+                id="c-notchColor"
+                value="#000000"
+                oninput="renderMockup()"
+              />
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Outer Corner Radius</span
+              ><span class="slider-val" id="v-outR">120px</span>
+            </div>
+            <input
+              type="range"
+              id="c-outR"
+              min="0"
+              max="240"
+              value="120"
+              oninput="updateVal('outR')"
+            />
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Inner Screen Radius</span
+              ><span class="slider-val" id="v-inR">96px</span>
+            </div>
+            <input
+              type="range"
+              id="c-inR"
+              min="0"
+              max="220"
+              value="96"
+              oninput="updateVal('inR')"
+            />
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Bezel Thickness</span
+              ><span class="slider-val" id="v-bezel">34px</span>
+            </div>
+            <input
+              type="range"
+              id="c-bezel"
+              min="8"
+              max="80"
+              value="34"
+              oninput="updateVal('bezel')"
+            />
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">3D Extrusion Depth</span
+              ><span class="slider-val" id="v-thick">24px</span>
+            </div>
+            <input
+              type="range"
+              id="c-thick"
+              min="0"
+              max="60"
+              value="24"
+              oninput="updateVal('thick')"
+            />
+          </div>
+
+          <!-- Notch / Thumb Enable or Disable Toggle -->
+          <label class="toggle-row">
+            <span class="toggle-row-title">Enable Notch / Dynamic Island</span>
+            <input
+              type="checkbox"
+              id="c-notchEnable"
+              checked
+              onchange="toggleNotch()"
+            />
+            <div class="toggle-switch"></div>
+          </label>
+
+          <div class="notch-controls-wrap" id="notch-controls">
+            <div class="slider-group">
+              <div class="slider-info">
+                <span class="slider-label">Notch Width</span
+                ><span class="slider-val" id="v-nw">200px</span>
+              </div>
+              <input
+                type="range"
+                id="c-nw"
+                min="40"
+                max="450"
+                value="200"
+                oninput="updateVal('nw')"
+              />
+            </div>
+            <div class="slider-group">
+              <div class="slider-info">
+                <span class="slider-label">Notch Height</span
+                ><span class="slider-val" id="v-nh">52px</span>
+              </div>
+              <input
+                type="range"
+                id="c-nh"
+                min="20"
+                max="120"
+                value="52"
+                oninput="updateVal('nh')"
+              />
+            </div>
+            <div class="slider-group">
+              <div class="slider-info">
+                <span class="slider-label">Notch Y Position</span
+                ><span class="slider-val" id="v-ny">22px</span>
+              </div>
+              <input
+                type="range"
+                id="c-ny"
+                min="0"
+                max="150"
+                value="22"
+                oninput="updateVal('ny')"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Controls -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+                />
+              </svg>
+              Screenshot Position & Zoom
+            </div>
+            <button class="btn-mini-reset" onclick="resetImagePos()">
+              Center
+            </button>
+          </div>
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Zoom Level</span
+              ><span class="slider-val" id="v-imgZ">100%</span>
+            </div>
+            <input
+              type="range"
+              id="c-imgZ"
+              min="50"
+              max="300"
+              value="100"
+              oninput="updateVal('imgZ')"
+            />
+          </div>
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Pan X (Horizontal)</span
+              ><span class="slider-val" id="v-imgX">0px</span>
+            </div>
+            <input
+              type="range"
+              id="c-imgX"
+              min="-800"
+              max="800"
+              value="0"
+              oninput="updateVal('imgX')"
+            />
+          </div>
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Pan Y (Vertical)</span
+              ><span class="slider-val" id="v-imgY">0px</span>
+            </div>
+            <input
+              type="range"
+              id="c-imgY"
+              min="-1200"
+              max="1200"
+              value="0"
+              oninput="updateVal('imgY')"
+            />
+          </div>
+        </div>
+
+        <!-- Background Color -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                />
+              </svg>
+              Background Setup
+            </div>
+          </div>
+          <div class="color-row">
+            <div class="color-picker-wrap">
+              <span>Gradient Start</span>
+              <input
+                type="color"
+                id="c-bg1"
+                value="#3b82f6"
+                oninput="renderMockup()"
+              />
+            </div>
+            <div class="color-picker-wrap">
+              <span>Gradient End</span>
+              <input
+                type="color"
+                id="c-bg2"
+                value="#8b5cf6"
+                oninput="renderMockup()"
+              />
+            </div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-info">
+              <span class="slider-label">Gradient Angle</span
+              ><span class="slider-val" id="v-bgA">45°</span>
+            </div>
+            <input
+              type="range"
+              id="c-bgA"
+              min="0"
+              max="360"
+              value="45"
+              oninput="updateVal('bgA')"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Action Bar -->
+      <div class="bottom-bar">
+        <button class="btn-export" onclick="exportMockup()">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+          </svg>
+          <span>Export HD Mockup</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      // --- App State & Setup ---
+      const canvas = document.getElementById("mockup-canvas");
+      const ctx = canvas.getContext("2d", { alpha: false });
+      const imageInput = document.getElementById("image-input");
+
+      // 2000x2000 Export Resolution for crisp output
+      const OUT_SIZE = 2000;
+      canvas.width = OUT_SIZE;
+      canvas.height = OUT_SIZE;
+
+      let uploadedImg = null;
+      let animFrame;
+
+      // --- Value Linker ---
+      function val(id) {
+        return parseFloat(document.getElementById("c-" + id).value);
+      }
+      function updateVal(id) {
+        let suffix = "";
+        if (id === "scale" || id === "imgZ") suffix = "%";
+        else if (
+          id === "rotX" ||
+          id === "rotY" ||
+          id === "rotZ" ||
+          id === "bgA"
+        )
+          suffix = "°";
+        else suffix = "px";
+
+        document.getElementById("v-" + id).textContent = val(id) + suffix;
+
+        if (animFrame) cancelAnimationFrame(animFrame);
+        animFrame = requestAnimationFrame(renderMockup);
+      }
+
+      function toggleNotch() {
+        const isEnabled = document.getElementById("c-notchEnable").checked;
+        const wrap = document.getElementById("notch-controls");
+        wrap.classList.toggle("disabled", !isEnabled);
+        renderMockup();
+      }
+
+      function resetOrientation() {
+        document.getElementById("c-rotX").value = 0;
+        document.getElementById("c-rotY").value = 0;
+        document.getElementById("c-rotZ").value = 0;
+        document.getElementById("v-rotX").textContent = "0°";
+        document.getElementById("v-rotY").textContent = "0°";
+        document.getElementById("v-rotZ").textContent = "0°";
+        renderMockup();
+      }
+
+      function resetImagePos() {
+        document.getElementById("c-imgZ").value = 100;
+        document.getElementById("c-imgX").value = 0;
+        document.getElementById("c-imgY").value = 0;
+        document.getElementById("v-imgZ").textContent = "100%";
+        document.getElementById("v-imgX").textContent = "0px";
+        document.getElementById("v-imgY").textContent = "0px";
+        renderMockup();
+      }
+
+      // --- Image Handling ---
+      imageInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            uploadedImg = img;
+            document.getElementById("empty-state").classList.add("hidden");
+            renderMockup();
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+        imageInput.value = "";
+      });
+
+      // --- Random Bg ---
+      function getRandomHex() {
+        return (
+          "#" +
+          Math.floor(Math.random() * 16777215)
+            .toString(16)
+            .padStart(6, "0")
+        );
+      }
+      function randomizeBg() {
+        document.getElementById("c-bg1").value = getRandomHex();
+        document.getElementById("c-bg2").value = getRandomHex();
+        document.getElementById("c-bgA").value = Math.floor(
+          Math.random() * 360,
+        );
+        updateVal("bgA");
+      }
+
+      // --- Clamped Rounded Rect Helper ---
+      function drawRoundRect(ctx, x, y, width, height, radius) {
+        const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
+      // --- Core 3D Render Engine ---
+      function renderMockup() {
+        if (!uploadedImg) return;
+
+        // 1. Draw Background
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        const bg1 = document.getElementById("c-bg1").value;
+        const bg2 = document.getElementById("c-bg2").value;
+        const bgAngle = val("bgA");
+
+        const angleRad = ((bgAngle - 90) * Math.PI) / 180;
+        const half = OUT_SIZE / 2;
+        const length =
+          Math.abs(half * Math.cos(angleRad)) +
+          Math.abs(half * Math.sin(angleRad));
+
+        const x1 = half - Math.cos(angleRad) * length;
+        const y1 = half - Math.sin(angleRad) * length;
+        const x2 = half + Math.cos(angleRad) * length;
+        const y2 = half + Math.sin(angleRad) * length;
+
+        const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+        grad.addColorStop(0, bg1);
+        grad.addColorStop(1, bg2);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, OUT_SIZE, OUT_SIZE);
+
+        // 2. Base Phone Specs & Radius Values
+        const scale = val("scale") / 100;
+        const baseW = 850;
+        const baseH = 1750;
+        const outerRadius = val("outR");
+        const innerRadius = val("inR");
+        const bezel = val("bezel");
+
+        // 3. 3D Orientation Variables
+        const rotX = val("rotX");
+        const rotY = val("rotY");
+        const rotZ = val("rotZ");
+        const thick = val("thick") * 2;
+
+        const radX = (rotX * Math.PI) / 180;
+        const radY = (rotY * Math.PI) / 180;
+        const radZ = (rotZ * Math.PI) / 180;
+
+        const cosY = Math.cos(radY);
+        const sinY = Math.sin(radY);
+        const cosX = Math.cos(radX);
+        const sinX = Math.sin(radX);
+
+        const shiftX = sinY * thick;
+        const shiftY = -sinX * cosY * thick;
+
+        const bodyColor = document.getElementById("c-bodyColor").value;
+        const notchColor = document.getElementById("c-notchColor").value;
+
+        function apply3DTransform(offsetX = 0, offsetY = 0) {
+          ctx.translate(OUT_SIZE / 2, OUT_SIZE / 2);
+          ctx.scale(scale, scale);
+          ctx.translate(offsetX, offsetY);
+          ctx.rotate(radZ);
+          ctx.transform(cosY, sinX * sinY, -sinY, cosX, 0, 0);
+        }
+
+        // 4. Draw Extrusion (Thickness & Shadow)
+        const isTilted = rotX !== 0 || rotY !== 0;
+        const layers = isTilted ? Math.max(1, thick) : 1;
+
+        for (let i = layers; i >= 0; i -= 2) {
+          ctx.save();
+          const f = layers > 0 ? i / layers : 0;
+          apply3DTransform(shiftX * f, shiftY * f);
+
+          if (i === layers) {
+            ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+            ctx.shadowBlur = 100;
+            ctx.shadowOffsetY = 55;
+            ctx.shadowOffsetX = rotY !== 0 ? 30 * Math.sign(rotY) : 0;
+            ctx.fillStyle = bodyColor;
+          } else {
+            ctx.shadowColor = "transparent";
+            ctx.fillStyle = bodyColor;
+          }
+
+          drawRoundRect(ctx, -baseW / 2, -baseH / 2, baseW, baseH, outerRadius);
+          ctx.fill();
+
+          // Subtle dark shading on extruded sides
+          if (i > 0 && isTilted) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        // 5. Draw Top Phone Face
+        ctx.save();
+        apply3DTransform(0, 0);
+
+        ctx.shadowColor = "transparent";
+        ctx.fillStyle = bodyColor;
+        drawRoundRect(ctx, -baseW / 2, -baseH / 2, baseW, baseH, outerRadius);
+        ctx.fill();
+
+        // Subtle metallic frame rim highlight
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // 6. Draw Screen & Image (Pan / Zoom + Inner Radius)
+        const sw = baseW - bezel * 2;
+        const sh = baseH - bezel * 2;
+        const sx = -baseW / 2 + bezel;
+        const sy = -baseH / 2 + bezel;
+
+        ctx.save();
+        drawRoundRect(ctx, sx, sy, sw, sh, innerRadius);
+        ctx.clip();
+
+        ctx.fillStyle = "#000";
+        ctx.fillRect(sx, sy, sw, sh);
+
+        const imgZ = val("imgZ") / 100;
+        const iX = val("imgX");
+        const iY = val("imgY");
+
+        const imgRatio = uploadedImg.width / uploadedImg.height;
+        const screenRatio = sw / sh;
+
+        let baseIW, baseIH;
+        if (imgRatio > screenRatio) {
+          baseIH = sh;
+          baseIW = sh * imgRatio;
+        } else {
+          baseIW = sw;
+          baseIH = sw / imgRatio;
+        }
+
+        const finalIW = baseIW * imgZ;
+        const finalIH = baseIH * imgZ;
+        const drawX = sx + (sw - finalIW) / 2 + iX;
+        const drawY = sy + (sh - finalIH) / 2 + iY;
+
+        ctx.drawImage(uploadedImg, drawX, drawY, finalIW, finalIH);
+
+        // Inner screen border
+        ctx.strokeStyle = "rgba(255,255,255,0.06)";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        ctx.restore();
+
+        // 7. Draw Dynamic Island / Notch (if enabled)
+        const notchEnabled = document.getElementById("c-notchEnable").checked;
+        if (notchEnabled) {
+          const nw = val("nw");
+          const nh = val("nh");
+          const ny = val("ny");
+          const nRadius = nh / 2;
+
+          const nx = -nw / 2;
+          const nYPos = -baseH / 2 + bezel + ny;
+
+          ctx.fillStyle = notchColor;
+          drawRoundRect(ctx, nx, nYPos, nw, nh, nRadius);
+          ctx.fill();
+
+          // Camera lens reflection
+          const lensRadius = Math.max(4, nh * 0.18);
+          ctx.fillStyle = "rgba(255,255,255,0.12)";
+          ctx.beginPath();
+          ctx.arc(
+            nx + nw - nh * 0.55,
+            nYPos + nh / 2,
+            lensRadius,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      // --- Export ---
+      let toastTimer;
+      function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
+      }
+
+      function exportMockup() {
+        if (!uploadedImg) return;
+
+        try {
+          const dataUrl = canvas.toDataURL("image/png", 1.0);
+          const a = document.createElement("a");
+          a.href = dataUrl;
+          a.download = `Mockup_3D_Pro_${Date.now()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast("Exported HD Mockup Successfully!");
+        } catch (err) {
+          showToast("Error generating mockup.");
+        }
+      }
+    </script>
+  </body>
+</html>
