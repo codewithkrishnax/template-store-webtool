@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0f9d73" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>Quick Messages</title>
+<style>
+/* ============ Tokens ============ */
+:root{
+  --bg:#f4f6f5; --surface:#ffffff; --text:#14201b; --muted:#6b7a74; --line:#e6ebe8;
+  --brand:#0f9d73; --brand-d:#0b7d5b; --brand-soft:#e3f6ee; --danger:#e5484d; --danger-soft:#fdeceb;
+  --shadow:0 1px 2px rgba(16,40,30,.06),0 4px 14px rgba(16,40,30,.06);
+  --radius:20px;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0e1512;--surface:#18211d;--text:#e8f1ec;--muted:#8fa39a;--line:#26332d;--brand-soft:#123428;--danger-soft:#3a1c1d;--shadow:0 1px 2px rgba(0,0,0,.4)}
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);
+  font-size:16px;line-height:1.45;overscroll-behavior-y:none;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ============ Layout (mobile first) ============ */
+.app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;position:relative}
+.appbar{position:sticky;top:0;z-index:20;background:var(--brand);color:#fff;padding:calc(14px + var(--safe-t)) 16px 14px;
+  border-radius:0 0 26px 26px;box-shadow:0 6px 20px rgba(15,157,115,.25)}
+.bar-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.title{font-size:22px;font-weight:700;letter-spacing:-.2px}
+.sub{font-size:12.5px;opacity:.85;margin-top:1px}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.18);color:#fff;transition:transform .15s,background .15s}
+.icon-btn:active{transform:scale(.92);background:rgba(255,255,255,.3)}
+.icon-btn svg{width:20px;height:20px}
+.search{margin-top:12px;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.95);border-radius:14px;padding:0 12px;color:#14201b}
+.search svg{width:18px;height:18px;color:#6b7a74;flex:none}
+.search input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:12px 0;font-size:15px;color:#14201b}
+.chips{display:flex;gap:8px;padding:14px 16px 4px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:7px 15px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--muted);transition:.15s}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+main{flex:1;padding:10px 16px calc(110px + var(--safe-b));display:flex;flex-direction:column;gap:12px}
+
+/* ============ Cards ============ */
+.card{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);animation:rise .28s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card-top{display:flex;gap:12px;align-items:flex-start}
+.avatar{flex:none;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:17px}
+.card-body{flex:1;min-width:0;cursor:pointer}
+.card-title{font-weight:650;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-text{font-size:14.5px;color:var(--muted);margin-top:2px;white-space:pre-wrap;word-break:break-word;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card.open .card-text{-webkit-line-clamp:unset;display:block}
+.star{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.star svg{width:20px;height:20px}
+.star.on{color:#f5a623}.star.on svg{fill:#f5a623}
+.star:active{transform:scale(.88)}
+.card-foot{display:flex;align-items:center;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.meta{flex:1;font-size:12px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--muted);background:var(--bg)}
+.mini svg{width:18px;height:18px}.mini:active{transform:scale(.9)}
+.mini.del{color:var(--danger);background:var(--danger-soft)}
+.share{display:flex;align-items:center;gap:7px;height:38px;padding:0 16px;border-radius:12px;background:var(--brand);color:#fff;font-weight:650;font-size:14px;box-shadow:0 4px 12px rgba(15,157,115,.3)}
+.share svg{width:17px;height:17px}.share:active{transform:scale(.95);background:var(--brand-d)}
+
+/* ============ Empty ============ */
+.empty{text-align:center;padding:56px 28px;color:var(--muted)}
+.empty .ill{width:96px;height:96px;margin:0 auto 18px;border-radius:30px;background:var(--brand-soft);display:grid;place-items:center;color:var(--brand)}
+.empty .ill svg{width:44px;height:44px}
+.empty h3{color:var(--text);font-size:18px;margin-bottom:6px}
+.empty p{font-size:14.5px}
+.empty .cta{margin-top:20px;padding:12px 24px;border-radius:999px;background:var(--brand);color:#fff;font-weight:650}
+
+/* ============ FAB ============ */
+.fab{position:fixed;right:max(18px,calc(50% - 280px + 18px));bottom:calc(22px + var(--safe-b));z-index:30;height:58px;padding:0 22px 0 18px;border-radius:20px;
+  background:var(--brand);color:#fff;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;box-shadow:0 10px 26px rgba(15,157,115,.45);transition:transform .15s}
+.fab svg{width:22px;height:22px}.fab:active{transform:scale(.94)}
+
+/* ============ Sheets ============ */
+.scrim{position:fixed;inset:0;background:rgba(5,15,10,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.scrim.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:560px;z-index:50;background:var(--surface);border-radius:26px 26px 0 0;
+  padding:10px 18px calc(18px + var(--safe-b));transform:translateY(105%);transition:transform .32s cubic-bezier(.2,.85,.25,1);max-height:92%;overflow-y:auto}
+.sheet.show{transform:none}
+.grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 12px}
+.sheet h2{font-size:19px;margin-bottom:12px}
+.label{font-size:12.5px;font-weight:600;color:var(--muted);margin:12px 0 6px;display:block}
+.field{width:100%;background:var(--bg);border:1.5px solid transparent;border-radius:14px;padding:13px 14px;outline:0;transition:.15s}
+.field:focus{border-color:var(--brand);background:var(--surface)}
+textarea.field{resize:none;min-height:140px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.row{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;height:50px;border-radius:16px;font-weight:700;font-size:15.5px}
+.btn.primary{background:var(--brand);color:#fff}.btn.primary:active{background:var(--brand-d)}
+.btn.ghost{background:var(--bg);color:var(--text)}
+.btn:active{transform:scale(.98)}
+.preview{background:var(--brand-soft);border-radius:16px 16px 16px 4px;padding:12px 14px;font-size:14.5px;white-space:pre-wrap;word-break:break-word;max-height:150px;overflow:auto}
+.phone{display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid transparent;border-radius:14px;padding:0 14px}
+.phone:focus-within{border-color:var(--brand);background:var(--surface)}
+.phone span{color:var(--muted);font-weight:600}
+.phone input{flex:1;min-width:0;border:0;background:transparent;outline:0;padding:13px 0}
+.menu-item{display:flex;align-items:center;gap:14px;width:100%;padding:14px 4px;text-align:left;font-weight:550}
+.menu-item svg{width:21px;height:21px;color:var(--brand)}
+.menu-item+.menu-item{border-top:1px solid var(--line)}
+
+/* ============ Toast ============ */
+.toast{position:fixed;left:50%;bottom:calc(98px + var(--safe-b));transform:translate(-50%,40px);opacity:0;z-index:80;background:#14201b;color:#fff;border-radius:14px;
+  padding:12px 16px;font-size:14px;display:flex;align-items:center;gap:14px;transition:.28s;pointer-events:none;max-width:92vw}
+.toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.toast button{color:#6ee7b7;font-weight:700}
+.offline-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#a7f3d0;margin-right:6px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="appbar">
+    <div class="bar-row">
+      <div>
+        <div class="title">Quick Messages</div>
+        <div class="sub"><span class="offline-dot"></span><span id="count">0 messages</span> · works offline</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="icon-btn" id="searchToggle" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+        <button class="icon-btn" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      </div>
+    </div>
+    <div class="search" id="searchBox" style="display:none">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="search" placeholder="Search your messages" autocomplete="off" />
+    </div>
+  </header>
+
+  <div class="chips">
+    <button class="chip on" data-f="all">All</button>
+    <button class="chip" data-f="pin">★ Starred</button>
+    <button class="chip" data-f="used">Most shared</button>
+  </div>
+
+  <main id="list"></main>
+</div>
+
+<button class="fab" id="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New message</button>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- Add / edit -->
+<form class="sheet" id="formSheet">
+  <div class="grab"></div>
+  <h2 id="formTitle">New message</h2>
+  <label class="label">Title (optional)</label>
+  <input class="field" id="fTitle" maxlength="60" placeholder="e.g. Payment reminder" autocomplete="off" />
+  <label class="label">Message</label>
+  <textarea class="field" id="fText" placeholder="Type the message you send often…" required></textarea>
+  <div class="hint" id="fCount">0 characters</div>
+  <label class="label">Send to number (optional)</label>
+  <div class="phone"><span>+</span><input id="fPhone" inputmode="numeric" maxlength="15" placeholder="9876543210 or 919876543210" autocomplete="off" /></div>
+  <div class="hint">If you add a number, tapping Send opens that WhatsApp chat directly with the message ready. 10-digit Indian numbers get +91 automatically.</div>
+  <div class="row">
+    <button type="button" class="btn ghost" id="cancelForm">Cancel</button>
+    <button type="submit" class="btn primary">Save</button>
+  </div>
+</form>
+
+<!-- Share -->
+<div class="sheet" id="shareSheet">
+  <div class="grab"></div>
+  <h2>Share to WhatsApp</h2>
+  <div class="preview" id="sPreview"></div>
+  <label class="label">Send to a number (optional)</label>
+  <div class="phone"><span>+</span><input id="sPhone" inputmode="numeric" placeholder="919876543210" autocomplete="off" /></div>
+  <div class="hint">Include country code. Leave empty to choose a contact or group in WhatsApp.</div>
+  <div class="row">
+    <button class="btn ghost" id="copyMsg">Copy</button>
+    <button class="btn primary" id="sendWa">Open WhatsApp</button>
+  </div>
+</div>
+
+<!-- Menu -->
+<div class="sheet" id="menuSheet">
+  <div class="grab"></div>
+  <h2>More</h2>
+  <button class="menu-item" id="exportBtn"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Export backup (JSON)</button>
+  <button class="menu-item" id="importBtn"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Import backup</button>
+  <input type="file" id="importFile" accept="application/json" hidden />
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct" style="display:none"></button></div>
+
+<script>
+/* ================= IndexedDB (local database, works offline) ================= */
+const DB_NAME='quick_messages_db',STORE='messages';let db;
+function openDB(){return new Promise((res,rej)=>{
+  const r=indexedDB.open(DB_NAME,1);
+  r.onupgradeneeded=e=>{e.target.result.createObjectStore(STORE,{keyPath:'id',autoIncrement:true})};
+  r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>rej(r.error);
+})}
+const store=m=>db.transaction(STORE,m).objectStore(STORE);
+const wrap=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const dbAll=()=>wrap(store('readonly').getAll());
+const dbAdd=m=>wrap(store('readwrite').add(m));
+const dbPut=m=>wrap(store('readwrite').put(m));
+const dbDel=id=>wrap(store('readwrite').delete(id));
+
+/* ================= Helpers ================= */
+const $=id=>document.getElementById(id);
+const ICON={
+  edit:'<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+  del:'<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>',
+  send:'<svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></svg>'
+};
+const PALETTE=['#0f9d73','#3b82f6','#f59e0b','#ec4899','#8b5cf6','#ef4444','#14b8a6','#f97316'];
+const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hash=s=>[...s].reduce((a,c)=>a+c.charCodeAt(0),0);
+const when=t=>new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+const buzz=(n=10)=>{try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+
+let toastT;
+function toast(msg,actLabel,actFn){
+  $('toastMsg').textContent=msg;const a=$('toastAct');
+  if(actLabel){a.style.display='';a.textContent=actLabel;a.onclick=()=>{actFn();hideToast()}}else a.style.display='none';
+  $('toast').classList.add('show');clearTimeout(toastT);toastT=setTimeout(hideToast,actLabel?5000:2200);
+}
+function hideToast(){$('toast').classList.remove('show')}
+
+/* ================= State & render ================= */
+let items=[],filter='all',editingId=null,shareItem=null;
+
+async function refresh(){items=await dbAll();render()}
+function render(){
+  const q=$('search').value.trim().toLowerCase();
+  let list=items.filter(m=>!q||m.text.toLowerCase().includes(q)||(m.title||'').toLowerCase().includes(q));
+  if(filter==='pin')list=list.filter(m=>m.pinned);
+  list.sort(filter==='used'?(a,b)=>(b.shares||0)-(a.shares||0):(a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||b.updatedAt-a.updatedAt);
+  $('count').textContent=items.length+(items.length===1?' message':' messages');
+
+  if(!items.length){
+    $('list').innerHTML=`<div class="empty"><div class="ill"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/></svg></div>
+      <h3>No messages yet</h3><p>Save the messages you send often, then share them to WhatsApp in one tap — no copy and paste.</p>
+      <button class="cta" onclick="openForm()">Add your first message</button></div>`;return;
+  }
+  if(!list.length){$('list').innerHTML=`<div class="empty"><h3>Nothing found</h3><p>${filter==='pin'?'Star a message to find it here.':'Try a different search.'}</p></div>`;return}
+
+  $('list').innerHTML=list.map((m,i)=>{
+    const name=m.title||m.text,color=PALETTE[hash(name)%PALETTE.length];
+    return `<article class="card" style="animation-delay:${Math.min(i,8)*30}ms" data-id="${m.id}">
+      <div class="card-top">
+        <div class="avatar" style="background:${color}">${esc((name.trim()[0]||'?').toUpperCase())}</div>
+        <div class="card-body" data-act="toggle">
+          ${m.title?`<div class="card-title">${esc(m.title)}</div>`:''}
+          <div class="card-text" style="${m.title?'':'color:var(--text)'}">${esc(m.text)}</div>
+        </div>
+        <button class="star ${m.pinned?'on':''}" data-act="pin" aria-label="Star">${ICON.star}</button>
+      </div>
+      <div class="card-foot">
+        <div class="meta">${m.phone?'→ +'+m.phone+' · ':''}${when(m.updatedAt)}${m.shares?` · sent ${m.shares}×`:''}</div>
+        <button class="mini" data-act="edit" aria-label="Edit">${ICON.edit}</button>
+        <button class="mini del" data-act="del" aria-label="Delete">${ICON.del}</button>
+        <button class="share" data-act="share">${ICON.send}${m.phone?'Send':'Share'}</button>
+      </div></article>`;
+  }).join('');
+}
+
+/* card actions (event delegation) */
+$('list').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const card=b.closest('.card'),id=+card.dataset.id,m=items.find(x=>x.id===id),act=b.dataset.act;
+  if(act==='toggle')card.classList.toggle('open');
+  if(act==='pin'){buzz();await dbPut({...m,pinned:!m.pinned});refresh()}
+  if(act==='edit')openForm(id);
+  if(act==='share'){
+    if(m.phone){buzz(15);await dbPut({...m,shares:(m.shares||0)+1});refresh();openWhatsApp(m.text,m.phone)}
+    else openShare(id);
+  }
+  if(act==='del'){
+    buzz(15);await dbDel(id);await refresh();
+    toast('Message deleted','Undo',async()=>{await dbAdd({...m});refresh()});
+  }
+});
+
+/* ================= Sheets ================= */
+const sheets=['formSheet','shareSheet','menuSheet'];
+function openSheet(id){$('scrim').classList.add('show');$(id).classList.add('show')}
+function closeSheets(){$('scrim').classList.remove('show');sheets.forEach(s=>$(s).classList.remove('show'));document.activeElement&&document.activeElement.blur()}
+$('scrim').onclick=closeSheets;
+
+/* add / edit */
+function openForm(id){
+  editingId=id||null;const m=id?items.find(x=>x.id===id):null;
+  $('formTitle').textContent=m?'Edit message':'New message';
+  $('fTitle').value=m?m.title||'':'';$('fText').value=m?m.text:'';$('fPhone').value=m?m.phone||'':'';
+  $('fCount').textContent=$('fText').value.length+' characters';
+  openSheet('formSheet');setTimeout(()=>$('fText').focus(),320);
+}
+$('fab').onclick=()=>openForm();
+$('cancelForm').onclick=closeSheets;
+$('fText').oninput=e=>$('fCount').textContent=e.target.value.length+' characters';
+$('formSheet').onsubmit=async e=>{
+  e.preventDefault();
+  const text=$('fText').value.trim();if(!text)return toast('Message cannot be empty');
+  const title=$('fTitle').value.trim(),now=Date.now();
+  const raw=$('fPhone').value.trim(),phone=normalizePhone(raw);
+  if(raw&&!phone)return toast('Enter a valid mobile number');
+  if(editingId){const old=items.find(x=>x.id===editingId);await dbPut({...old,title,text,phone,updatedAt:now});toast('Message updated')}
+  else{await dbAdd({title,text,phone,shares:0,pinned:false,createdAt:now,updatedAt:now});toast('Message saved')}
+  buzz();closeSheets();refresh();
+};
+
+/* WhatsApp: open the app directly (whatsapp:// deep link), fall back to wa.me */
+function normalizePhone(v){
+  const d=(v||'').replace(/\D/g,'');
+  if(!d)return '';
+  if(d.length===10)return '91'+d;           // Indian 10-digit number
+  return d.length>=11&&d.length<=15?d:'';
+}
+function openWhatsApp(text,phone){
+  const q='text='+encodeURIComponent(text);
+  const appUrl='whatsapp://send?'+(phone?'phone='+phone+'&':'')+q;
+  const webUrl='https://wa.me/'+(phone||'')+'?'+q;
+  let left=false;
+  const onVis=()=>{if(document.hidden)left=true};
+  document.addEventListener('visibilitychange',onVis);
+  window.location.href=appUrl;
+  setTimeout(()=>{
+    document.removeEventListener('visibilitychange',onVis);
+    if(!left&&!document.hidden)window.open(webUrl,'_blank');   // app not installed
+  },1800);
+}
+
+/* share */
+function openShare(id){
+  shareItem=items.find(x=>x.id===id);$('sPreview').textContent=shareItem.text;$('sPhone').value='';openSheet('shareSheet');
+}
+$('sPhone').oninput=e=>e.target.value=e.target.value.replace(/\D/g,'');
+$('sendWa').onclick=async()=>{
+  const raw=$('sPhone').value.trim(),p=normalizePhone(raw);
+  if(raw&&!p)return toast('Enter a valid mobile number');
+  await dbPut({...shareItem,shares:(shareItem.shares||0)+1});
+  closeSheets();refresh();
+  openWhatsApp(shareItem.text,p);
+};
+$('copyMsg').onclick=async()=>{
+  try{await navigator.clipboard.writeText(shareItem.text);toast('Copied to clipboard')}
+  catch(e){const t=document.createElement('textarea');t.value=shareItem.text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Copied to clipboard')}
+};
+
+/* search + filters */
+$('searchToggle').onclick=()=>{
+  const box=$('searchBox'),show=box.style.display==='none';
+  box.style.display=show?'flex':'none';if(show)$('search').focus();else{$('search').value='';render()}
+};
+$('search').oninput=render;
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');filter=c.dataset.f;render();
+});
+
+/* backup / restore (data lives only on this device, so offer a backup) */
+$('menuBtn').onclick=()=>openSheet('menuSheet');
+$('exportBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(items.map(({id,...r})=>r),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='quick-messages-backup.json';a.click();
+  closeSheets();toast('Backup downloaded');
+};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const arr=JSON.parse(await f.text());if(!Array.isArray(arr))throw 0;let n=0;
+    for(const r of arr){if(r&&typeof r.text==='string'&&r.text.trim()){await dbAdd({title:r.title||'',text:r.text,phone:r.phone||'',shares:r.shares||0,pinned:!!r.pinned,createdAt:r.createdAt||Date.now(),updatedAt:r.updatedAt||Date.now()});n++}}
+    closeSheets();refresh();toast(n+' messages imported');
+  }catch(err){toast('Invalid backup file')}
+  e.target.value='';
+};
+
+/* keyboard: Esc closes sheets */
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheets()});
+
+/* ================= Init ================= */
+openDB().then(refresh).catch(()=>{$('list').innerHTML='<div class="empty"><h3>Storage unavailable</h3><p>Your browser blocked the local database. Try opening this page in a normal (non-private) window.</p></div>'});
+</script>
+</body>
+</html>

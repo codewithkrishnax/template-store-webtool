@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>Todo Studio</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :root {
+        --bg: #f4f4f8;
+        --surface: #ffffff;
+        --surface-variant: #f1f5f9;
+        --border: rgba(0, 0, 0, 0.06);
+        --text: #18181b;
+        --sub: #71717a;
+        --muted: #a1a1aa;
+        --primary: #6366f1;
+        --primary-soft: #e0e7ff;
+        --on-primary: #ffffff;
+        --danger: #ef4444;
+        --danger-soft: #fee2e2;
+        --success: #10b981;
+        --sans: "Plus Jakarta Sans", system-ui, sans-serif;
+        --radius: 20px;
+        --shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        --sheet-shadow: 0 -8px 24px rgba(0, 0, 0, 0.1);
+        --safe-b: env(safe-area-inset-bottom, 0px);
+      }
+
+      [data-theme="dark"] {
+        --bg: #09090b;
+        --surface: #18181b;
+        --surface-variant: #27272a;
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #fafafa;
+        --sub: #a1a1aa;
+        --muted: #71717a;
+        --primary: #818cf8;
+        --primary-soft: rgba(99, 102, 241, 0.15);
+        --on-primary: #1e1b4b;
+        --danger: #f87171;
+        --danger-soft: rgba(248, 113, 113, 0.15);
+        --success: #34d399;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        --sheet-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7);
+      }
+
+      html,
+      body {
+        height: 100dvh;
+        overflow: hidden;
+        background: var(--bg);
+        font-family: var(--sans);
+        color: var(--text);
+        transition:
+          background 0.3s,
+          color 0.3s;
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      /* ── Header ── */
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+        padding: 16px 20px 8px;
+        background: var(--bg);
+        z-index: 10;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .header-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--on-primary);
+        box-shadow: 0 4px 12px var(--primary-soft);
+      }
+      .header-icon svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+      }
+      .header-text h1 {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+      }
+      .header-text p {
+        font-size: 13px;
+        color: var(--sub);
+        font-weight: 600;
+        margin-top: 1px;
+      }
+
+      .theme-toggle {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text);
+        transition: transform 0.2s;
+        box-shadow: var(--shadow);
+      }
+      .theme-toggle:active {
+        transform: scale(0.9);
+      }
+      .theme-toggle svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+      .icon-moon {
+        display: none;
+      }
+      [data-theme="dark"] .icon-sun {
+        display: none;
+      }
+      [data-theme="dark"] .icon-moon {
+        display: block;
+      }
+
+      /* ── Filters (Chips) ── */
+      .chips-wrap {
+        display: flex;
+        gap: 8px;
+        padding: 12px 20px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        flex-shrink: 0;
+      }
+      .chips-wrap::-webkit-scrollbar {
+        display: none;
+      }
+      .chip {
+        padding: 8px 16px;
+        border-radius: 99px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--sub);
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .chip.active {
+        background: var(--text);
+        color: var(--bg);
+        border-color: var(--text);
+      }
+      .chip:active {
+        transform: scale(0.95);
+      }
+
+      /* ── Workspace & List ── */
+      .workspace {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+        padding: 8px 20px calc(100px + var(--safe-b));
+      }
+      .workspace::-webkit-scrollbar {
+        display: none;
+      }
+
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 50vh;
+        gap: 16px;
+        transition: opacity 0.3s;
+      }
+      .empty-state.hidden {
+        display: none;
+      }
+      .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--surface);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        box-shadow: var(--shadow);
+      }
+      .empty-icon svg {
+        width: 40px;
+        height: 40px;
+        fill: currentColor;
+      }
+      .empty-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+      }
+      .empty-sub {
+        font-size: 14px;
+        color: var(--sub);
+        text-align: center;
+        max-width: 260px;
+        line-height: 1.5;
+        font-weight: 500;
+      }
+
+      .task-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      /* ── Task Card ── */
+      .task-card {
+        background: var(--surface);
+        border-radius: 18px;
+        padding: 16px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          opacity 0.3s;
+        animation: slideIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .task-card:active {
+        transform: scale(0.97);
+      }
+
+      .task-check {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid var(--muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s;
+        background: transparent;
+        color: transparent;
+      }
+      .task-check svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+        transform: scale(0);
+        transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .task-card.completed .task-check {
+        background: var(--success);
+        border-color: var(--success);
+        color: #fff;
+      }
+      .task-card.completed .task-check svg {
+        transform: scale(1);
+      }
+
+      .task-content {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .task-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        transition: color 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .task-desc {
+        font-size: 13px;
+        color: var(--sub);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .task-card.completed .task-title {
+        color: var(--muted);
+        text-decoration: line-through;
+      }
+      .task-card.completed .task-desc {
+        color: var(--border);
+      }
+
+      .task-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--sub);
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn-icon:active {
+        background: var(--surface-variant);
+      }
+      .btn-icon svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+      }
+      .btn-icon.del:active {
+        background: var(--danger-soft);
+        color: var(--danger);
+      }
+
+      /* ── FAB ── */
+      .fab {
+        position: absolute;
+        bottom: calc(24px + var(--safe-b));
+        right: 24px;
+        width: 60px;
+        height: 60px;
+        border-radius: 20px;
+        background: var(--primary);
+        color: var(--on-primary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 8px 24px var(--primary-soft);
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s;
+        z-index: 20;
+      }
+      .fab:active {
+        transform: scale(0.92);
+      }
+      .fab svg {
+        width: 28px;
+        height: 28px;
+        fill: currentColor;
+      }
+
+      /* ── Bottom Sheet (Editor) ── */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        z-index: 30;
+      }
+      .overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 90dvh;
+        background: var(--bg);
+        border-radius: 28px 28px 0 0;
+        box-shadow: var(--sheet-shadow);
+        z-index: 40;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+      }
+      .bottom-sheet.active {
+        transform: translateY(0);
+      }
+
+      .sheet-handle {
+        width: 44px;
+        height: 5px;
+        background: var(--border);
+        border-radius: 3px;
+        margin: 12px auto 0;
+      }
+
+      .editor-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .editor-title-text {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+      }
+      .editor-btn-close {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text);
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .editor-btn-close:active {
+        background: var(--surface-variant);
+      }
+      .editor-btn-close svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
+      .editor-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        gap: 16px;
+        overflow-y: auto;
+      }
+
+      .input-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .input-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--sub);
+      }
+      .input-field {
+        width: 100%;
+        background: var(--surface);
+        border: 2px solid transparent;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-family: var(--sans);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        outline: none;
+        transition: border 0.2s;
+      }
+      .input-field:focus {
+        border-color: var(--primary);
+      }
+      .input-field::placeholder {
+        color: var(--muted);
+        font-weight: 500;
+      }
+      textarea.input-field {
+        resize: none;
+        min-height: 100px;
+        line-height: 1.5;
+      }
+
+      .btn-save {
+        height: 56px;
+        border-radius: 16px;
+        background: var(--primary);
+        color: var(--on-primary);
+        border: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: var(--sans);
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 4px 14px var(--primary-soft);
+        transition: transform 0.2s;
+        margin-top: 8px;
+      }
+      .btn-save:active {
+        transform: scale(0.96);
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translate(-50%, -20px);
+        background-color: var(--text);
+        color: var(--bg);
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 700;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        z-index: 100;
+        pointer-events: none;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+      .toast.show {
+        transform: translate(-50%, 20px);
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- Header -->
+     
+
+      <div class="chips-wrap">
+        <button class="chip active" onclick="setFilter('all', this)">
+          All Tasks
+        </button>
+        <button class="chip" onclick="setFilter('active', this)">Active</button>
+        <button class="chip" onclick="setFilter('completed', this)">
+          Completed
+        </button>
+      </div>
+
+      <div class="workspace">
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+              />
+            </svg>
+          </div>
+          <div class="empty-title">All caught up!</div>
+          <div class="empty-sub">
+            No tasks found. Tap the + button to add something new to your list.
+          </div>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list" id="task-list">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+
+      <!-- FAB -->
+      <button class="fab" onclick="openEditor()">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closeSheet()"></div>
+
+    <!-- Editor Sheet -->
+    <div class="bottom-sheet" id="editor-sheet">
+      <div class="sheet-handle"></div>
+      <div class="editor-header">
+        <div class="editor-title-text" id="editor-title-text">New Task</div>
+        <button class="editor-btn-close" onclick="closeSheet()">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="editor-body">
+        <div class="input-wrap">
+          <span class="input-label">Task Name</span>
+          <input
+            type="text"
+            id="task-title"
+            class="input-field"
+            placeholder="e.g. Buy groceries"
+            autocomplete="off"
+          />
+        </div>
+        <div class="input-wrap">
+          <span class="input-label">Description (Optional)</span>
+          <textarea
+            id="task-desc"
+            class="input-field"
+            placeholder="Any extra details..."
+          ></textarea>
+        </div>
+        <button class="btn-save" onclick="saveTask()">Save Task</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      // --- Theme Logic ---
+      function initTheme() {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme) {
+          document.documentElement.setAttribute("data-theme", savedTheme);
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      }
+      initTheme();
+
+      function toggleTheme() {
+        const current = document.documentElement.getAttribute("data-theme");
+        const target = current === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", target);
+        localStorage.setItem("theme", target);
+      }
+
+      // --- Toast ---
+      let toastTimer;
+      function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
+      }
+
+      // --- IndexedDB Setup ---
+      const DB_NAME = "todo_studio_db";
+      const STORE = "tasks";
+      let db;
+
+      function openDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, 1);
+          request.onupgradeneeded = (e) => {
+            e.target.result.createObjectStore(STORE, {
+              keyPath: "id",
+              autoIncrement: true,
+            });
+          };
+          request.onsuccess = () => {
+            db = request.result;
+            resolve();
+          };
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      function storeTx(mode) {
+        return db.transaction(STORE, mode).objectStore(STORE);
+      }
+      function dbGetAll() {
+        return new Promise((res, rej) => {
+          const req = storeTx("readonly").getAll();
+          req.onsuccess = () => res(req.result);
+          req.onerror = () => rej(req.error);
+        });
+      }
+      function dbPut(task) {
+        return new Promise((res, rej) => {
+          const req = storeTx("readwrite").put(task);
+          req.onsuccess = () => res(req.result);
+          req.onerror = () => rej(req.error);
+        });
+      }
+      function dbDelete(id) {
+        return new Promise((res, rej) => {
+          const req = storeTx("readwrite").delete(id);
+          req.onsuccess = () => res();
+          req.onerror = () => rej(req.error);
+        });
+      }
+
+      // --- App State ---
+      let tasks = [];
+      let currentFilter = "all"; // all, active, completed
+      let editingTask = null; // null if adding new
+
+      // --- Render ---
+      function escapeHTML(str) {
+        return str.replace(
+          /[&<>'"]/g,
+          (tag) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              "'": "&#39;",
+              '"': "&quot;",
+            })[tag],
+        );
+      }
+
+      async function loadTasks() {
+        tasks = await dbGetAll();
+
+        // Sort: active first, then by creation date (newest first)
+        tasks.sort((a, b) => {
+          if (a.completed === b.completed) return b.createdAt - a.createdAt;
+          return a.completed ? 1 : -1;
+        });
+
+        renderList();
+      }
+
+      function renderList() {
+        const listEl = document.getElementById("task-list");
+        const emptyState = document.getElementById("empty-state");
+
+        let filtered = tasks;
+        if (currentFilter === "active")
+          filtered = tasks.filter((t) => !t.completed);
+        if (currentFilter === "completed")
+          filtered = tasks.filter((t) => t.completed);
+
+        if (filtered.length === 0) {
+          listEl.innerHTML = "";
+          emptyState.classList.remove("hidden");
+          return;
+        }
+
+        emptyState.classList.add("hidden");
+
+        listEl.innerHTML = filtered
+          .map((task, idx) => {
+            const descHtml = task.desc
+              ? `<div class="task-desc">${escapeHTML(task.desc)}</div>`
+              : "";
+            const completedClass = task.completed ? "completed" : "";
+
+            return `
+      <div class="task-card ${completedClass}" style="animation-delay: ${Math.min(idx * 0.05, 0.5)}s" onclick="toggleTask(${task.id})">
+        <div class="task-check">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </div>
+        <div class="task-content">
+          <div class="task-title">${escapeHTML(task.title)}</div>
+          ${descHtml}
+        </div>
+        <div class="task-actions" onclick="event.stopPropagation()">
+          <button class="btn-icon" onclick="openEditor(${task.id})">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          </button>
+          <button class="btn-icon del" onclick="deleteTask(${task.id})">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+          })
+          .join("");
+      }
+
+      // --- Actions ---
+      async function toggleTask(id) {
+        const task = tasks.find((t) => t.id === id);
+        if (!task) return;
+
+        task.completed = !task.completed;
+        await dbPut(task);
+        loadTasks();
+      }
+
+      async function deleteTask(id) {
+        await dbDelete(id);
+        showToast("Task deleted");
+        loadTasks();
+      }
+
+      function setFilter(filter, el) {
+        currentFilter = filter;
+        document
+          .querySelectorAll(".chip")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        renderList();
+      }
+
+      // --- Sheets Management ---
+      const overlay = document.getElementById("overlay");
+      const editorSheet = document.getElementById("editor-sheet");
+      const titleInput = document.getElementById("task-title");
+      const descInput = document.getElementById("task-desc");
+
+      function openEditor(id = null) {
+        if (id !== null) {
+          editingTask = tasks.find((t) => t.id === id);
+          document.getElementById("editor-title-text").textContent =
+            "Edit Task";
+        } else {
+          editingTask = { title: "", desc: "", completed: false };
+          document.getElementById("editor-title-text").textContent = "New Task";
+        }
+
+        titleInput.value = editingTask.title;
+        descInput.value = editingTask.desc || "";
+
+        overlay.classList.add("active");
+        editorSheet.classList.add("active");
+
+        setTimeout(() => titleInput.focus(), 300);
+      }
+
+      function closeSheet() {
+        overlay.classList.remove("active");
+        editorSheet.classList.remove("active");
+        document.activeElement.blur();
+      }
+
+      async function saveTask() {
+        const title = titleInput.value.trim();
+        const desc = descInput.value.trim();
+
+        if (!title) {
+          showToast("Task name is required");
+          return;
+        }
+
+        editingTask.title = title;
+        editingTask.desc = desc;
+        editingTask.updatedAt = Date.now();
+        if (!editingTask.createdAt)
+          editingTask.createdAt = editingTask.updatedAt;
+
+        await dbPut(editingTask);
+
+        editingTask = null;
+        closeSheet();
+        showToast("Task saved successfully");
+        loadTasks();
+      }
+
+      // --- Boot ---
+      openDB()
+        .then(loadTasks)
+        .catch((e) => {
+          showToast("Storage error: Try disabling private browsing.");
+        });
+    </script>
+  </body>
+</html>

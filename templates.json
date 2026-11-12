@@ -470,5 +470,82 @@
     "date": "2026-11-04",
     "isPremium": true,
     "show": true
+  },
+  {
+    "appId": "wa-quick-messages-v1.html",
+    "appName": "WA Quick Messages",
+    "description": "Save your frequently used messages and share them directly to WhatsApp. Works completely offline.",
+    "icon": "fa fa-comment-dots",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/wa-quick-messages-v1.html.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/wa-quick-messages-v1.html.html",
+    "date": "2026-11-12",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "vault-notes-v1",
+    "appName": "Vault Notes",
+    "description": "A beautiful, offline-first notes app with optional PIN protection to keep your private thoughts secure.",
+    "icon": "fa fa-lock",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/vault-notes-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/vault-notes-v1.html",
+    "date": "2026-11-12",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "todo-studio-v1",
+    "appName": "Todo Studio",
+    "description": "A beautiful, offline-first task manager with fluid animations, dark mode, and seamless IndexedDB syncing.",
+    "icon": "fa fa-check-circle",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/todo-studio-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/todo-studio-v1.html",
+    "date": "2026-11-12",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "dice-studio-v1",
+    "appName": "Challenge Dice 3D",
+    "description": "A massive, fully customizable 3D dice for challenges and games. Swap dots for custom text prompts—100% offline.",
+    "icon": "fa fa-dice-d6",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/dice-studio-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/dice-studio-v1.html",
+    "date": "2026-11-12",
+    "isPremium": false,
+    "show": true
+  },
+  {
+    "appId": "secret-calc-vault-v1",
+    "appName": "Calculator",
+    "description": "A fully functional calculator that secretly hides a secure, offline PIN-protected notes vault.",
+    "icon": "fa fa-calculator",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/secret-calc-vault-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/secret-calc-vault-v1.html",
+    "date": "2026-11-12",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "project-studio-v1",
+    "appName": "Project Studio",
+    "description": "A powerful, offline-first project manager. Track deadlines, set priorities, and organize your workflow with a beautiful mobile UI.",
+    "icon": "fa fa-tasks",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/project-studio-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/project-studio-v1.html",
+    "date": "2026-11-12",
+    "isPremium": true,
+    "show": true
+  },
+  {
+    "appId": "yt-link-saver-v1",
+    "appName": "YT Link Saver",
+    "description": "Save YouTube URLs with automatic high-quality thumbnails. Now with Light/Dark mode, instant search, and Grid/List view toggles.",
+    "icon": "fa fa-youtube-play",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/yt-link-saver-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/yt-link-saver-v1.html",
+    "date": "2026-11-12",
+    "isPremium": true,
+    "show": true
   }
 ]
