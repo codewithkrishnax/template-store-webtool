@@ -476,8 +476,8 @@
     "appName": "WA Quick Messages",
     "description": "Save your frequently used messages and share them directly to WhatsApp. Works completely offline.",
     "icon": "fa fa-comment-dots",
-    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/wa-quick-messages-v1.html.png",
-    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/wa-quick-messages-v1.html.html",
+    "image": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/images/wa-quick-messages-v1.png",
+    "file": "https://raw.githubusercontent.com/codewithkrishnax/template-store-webtool/main/templates/wa-quick-messages-v1.html",
     "date": "2026-11-12",
     "isPremium": false,
     "show": true
